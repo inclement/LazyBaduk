@@ -1,0 +1,2228 @@
+
+#:import main oldutil
+#:import Factory kivy.factory.Factory
+#:import Window kivy.core.window.Window
+#:import sgfmodels sgfmodels
+#:import col style
+
+<Label>:
+    color: col.text_primary
+
+<NoBackgroundButton>:
+    canvas:
+        Color:
+            rgba: self.background_down_color if self.state == 'down' else self.background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    
+
+<NogoRoot>:
+    orientation: 'vertical'
+    manager: manager
+    # ActionBar:
+    #     background_color: col.dark_primary
+    #     background_image: ''
+    #     on_touch_down: print self.background_color
+    #     ActionView:
+    #         use_separator: True
+    #         title: 'noGo'
+    #         ActionPrevious:
+    #             with_previous: True
+    #             app_icon: 'logo-1.png'
+    NogoManager:
+        id: manager
+
+<ScrollListView>:
+    min_overscroll: 1000
+
+<AreaMarker>:
+    canvas:
+        Color:
+            rgba: 0,1,0,0.07
+        Rectangle:
+            pos: [self.corners[0], self.corners[1]]
+            size: (self.corners[4]-self.corners[2], self.corners[3]-self.corners[1])
+        Color:
+            rgba: 0,0,0,0.5
+        Line:
+            points: self.corners
+            close: True
+            width: 2
+            joint: 'round'
+        
+                
+
+<FlipButton@Button>:
+    Image:
+        x: root.x + 0.05*root.width
+        y: root.y + 0.2*root.height
+        width: 0.9*root.width
+        height: 0.6*root.height
+        pos: root.pos 
+        size: root.size
+        source: 'media/mainimages/spinner_flip-1.png'
+        allow_stretch: True
+        mipmap: True
+
+<ReversibleSpinner>:
+    spinner: spinner
+    button: button
+    orientation: 'horizontal'
+    text: self.spinner.text
+    Spinner:
+        id: spinner
+        text: 'Navigate'
+        values: root.values
+        option_cls: Factory.MySpinnerOption
+        color: col.icon
+        background_color: col.dark_primary
+    FlipButton:
+        id: button
+        size_hint_x: None
+        width: dp(30)
+        on_press: root.revert_spinner()
+        background_color: col.dark_primary
+
+<NogoManager>:
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<NogoButton>:
+    background_normal: 'media/black_pixel.png'
+    background_down: 'media/blue_press_pixel.png'
+
+<NavigationButtons>:
+    manager: app.manager
+    do_scroll_x: False
+    minimum_height: buttons.height
+    GridLayout:
+        id: buttons
+        width: root.width
+        cols: 1
+        spacing: 1
+        size_hint_y: None
+        height: self.minimum_height
+        Widget:
+            size_hint_y: None
+            height: 2
+        Image:
+            source: 'media/logo_big.png'
+            size_hint_y: None
+            height: min(0.6*root.width, dp(200))
+            mipmap: True
+        Label:
+            size_hint_y: None
+            height: sp(25)
+            text: 'v' + app.version
+        DividerLine:
+        NogoButton:
+            text: 'Home'
+            on_release: root.navdrawer.toggle_state(); root.manager.go_home(True)
+            height: dp(40)
+            size_hint_y: None
+        DividerLine:
+            linewidth: 1
+        NogoButton:
+            text: 'Collections'
+            on_release: root.navdrawer.toggle_state(); root.manager.switch_and_set_back('Collections Index')
+            height: dp(40)
+            size_hint_y: None
+        DividerLine:
+            linewidth: 1
+        NogoButton:
+            text: 'New board'
+            on_release: root.navdrawer.toggle_state(); root.manager.new_board_dialog()
+            height: dp(40)
+            size_hint_y: None
+        DividerLine:
+            linewidth: 1
+        NogoButton:
+            text: 'SGF from file'
+            on_release: root.navdrawer.toggle_state(); root.manager.open_sgf_dialog()
+            height: dp(40)
+            size_hint_y: None
+        DividerLine:
+            linewidth: 1
+        NogoButton:
+            text: 'Settings'
+            on_release: root.navdrawer.toggle_state(); app.open_settings()
+            height: dp(40)
+            size_hint_y: None
+        DividerLine:
+            linewidth: 1
+        NogoButton:
+            text: 'noGo info'
+            on_release: root.navdrawer.toggle_state(); root.manager.open_help()
+            height: dp(40)
+            size_hint_y: None
+        DividerLine:
+
+<NogoDrawer>:
+    anim_type: 'reveal_below_anim'
+    separator_image: './nogo_gradient_rtol.png'
+    separator_image_width: dp(10)
+    id: drawer
+    NavigationButtons:
+        navdrawer: drawer
+
+<AndroidTextInput>:
+    background_color: (0,0,0,0)
+    foreground_color: (1,1,1,1)
+    canvas.before:
+        Color:
+            rgba: (0.195,0.641,0.805,1)
+        Line:
+            width: 2
+            cap: 'square'
+            points: [self.x+1.5, self.y+dp(4), self.x+1.5, self.y, self.x-1.5+self.width, self.y, self.x-1.5+self.width, self.y+dp(4)]
+            joint: 'miter'
+        Color:
+            rgba: (1,1,1,1)
+        
+
+<CollectionProgress>:
+    title: 'Parsing collections...'
+    size_hint_x: 0.9
+    size_hint_y: None
+    height: (100,'sp')
+    ProgressBar:
+        value: root.progress
+        max: root.length-1
+
+<EditMarker>:
+    pos: self.set_position_from_coord(self.coord)
+    size: self.board.stonesize
+    canvas.before:
+        Color:
+            rgb: (0.095,0,0.434)
+        Line:
+            points: [self.board.x,self.y + 0.5*self.height,self.board.x + self.board.width,self.y + 0.5*self.height]
+            width: 2.
+            cap: 'none'
+        Line:
+            points: [self.x + 0.5*self.width,self.board.y,self.x + 0.5*self.width,self.board.y + self.board.height]
+            width: 2.
+            cap: 'none'
+
+<MakeEmptyMarker>:
+    colour: (0.9,0.1,0.1,1.0)
+    canvas:
+        Color:
+            rgba: self.colour
+        Line:
+            width: 2
+            points: [self.x+0.1*self.width, self.y+0.1*self.height, self.x+0.9*self.width, self.y+0.9*self.height]
+        Line:
+            width: 2
+            points: [self.x+0.1*self.width, self.y+0.9*self.height, self.x+0.9*self.width, self.y+0.1*self.height]
+
+<MakeTriangleMarker>:
+    colour: (0.1,0.1,0.9,1.0)
+    canvas:
+        Color:
+            rgba: self.colour
+        Triangle:
+            points: [self.x + 0.1*self.width, self.y+0.22*self.height, self.x+0.9*self.width, self.y+0.22*self.height, self.x+0.5*self.width,self.y+0.99*self.height]
+<MakeSquareMarker>:
+    colour: (0.1,0.1,0.9,1.0)
+    canvas:
+        Color:
+            rgba: self.colour
+        Rectangle:
+            pos: (self.x+0.1*self.width, self.y+0.1*self.height)
+            size: (0.8*self.width, 0.8*self.height)
+<MakeCircleMarker>:
+    colour: (0.1,0.1,0.9,1.0)
+    canvas:
+        Color:
+            rgba: self.colour
+        Ellipse:
+            pos: (self.x+0.1*self.width, self.y+0.1*self.width)
+            size: (0.8*self.width, 0.8*self.height)
+<MakeCrossMarker>:
+    colour: (0.1,0.1,0.9,1.0)
+    canvas:
+        Color:
+            rgba: self.colour
+        Line:
+            width: 2
+            points: [self.x+0.1*self.width, self.y+0.1*self.height, self.x+0.9*self.width, self.y+0.9*self.height]
+        Line:
+            width: 2
+            points: [self.x+0.1*self.width, self.y+0.9*self.height, self.x+0.9*self.width, self.y+0.1*self.height]
+
+<GameTreeBlack>:
+    padding: 2
+    width: (20,'sp')
+    height: (20,'sp')
+    BlackStoneSimple
+<GameTreeWhite>:
+    padding: 2
+    width: (20,'sp')
+    height: (20,'sp')
+    WhiteStoneSimple
+<GameTreeEmpty>:
+    passing: 2
+    width: (20,'sp')
+    height: (20,'sp')
+    SquareMarker
+    
+
+<TreeRow>:
+    width: sum([child.width for child in self.children])
+    height: (20,'sp')
+
+<GameTree>:
+    layout: fl
+    canvas.before:
+        Color:
+            rgb: (0,0,0.8)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    GameTreeLayout:
+        id: fl
+
+<CarouselRightArrow>:
+    background_color: col.icon
+    background_down_color: col.light_primary
+    canvas:
+        Color:
+            rgb: col.text_secondary
+        Line:
+            width: 2
+            cap: 'square'
+            points: [self.x+0.2*self.width, self.y+0.2*self.height, self.x+0.8*self.width, self.y+0.5*self.height, self.x+0.2*self.width, self.y+0.8*self.height]
+
+<CarouselLeftArrow>:
+    background_color: col.icon
+    background_down_color: col.light_primary
+    canvas:
+        Color:
+            rgba: col.text_secondary
+        Line:
+            width: 2
+            cap: 'square'
+            points: [self.x+0.8*self.width, self.y+0.2*self.height, self.x+0.2*self.width, self.y+0.5*self.height, self.x+0.8*self.width, self.y+0.8*self.height]
+
+<GameSlider>:
+    step: 1
+
+<NumberChooser>:
+    orientation: 'horizontal'
+    Button:
+        size_hint_x: None
+        width: self.parent.height
+        on_press: root.decrement()
+        canvas:
+            Line:
+                points: [self.x + 0.15*self.width,self.y+0.5*self.height,self.x+0.85*self.width,self.y+0.5*self.height]
+                width: 2
+                cap: 'square'
+    Label:
+        font_size: (0.9*self.height,'px')
+        text: str(root.number)
+    Button:
+        size_hint_x: None
+        width: self.parent.height
+        on_press: root.increment()
+        canvas:
+            Line:
+                points: [self.x + 0.15*self.width,self.y+0.5*self.height,self.x+0.85*self.width,self.y+0.5*self.height]
+                width: 2
+                cap: 'square'
+            Line:
+                points: [self.x + 0.5*self.width,self.y+0.15*self.height,self.x+0.5*self.width,self.y+0.85*self.height]
+                width: 2
+                cap: 'square'
+            
+
+<InfoPage>:
+    do_default_tab: False
+
+    TabbedPanelItem:
+        text: 'Info'
+        RstDocument:
+            source: 'README.rst'
+    TabbedPanelItem:
+        text: 'Help'
+        RstDocument:
+            source: 'help.rst'
+
+<GameOptionsButton@Widget>:
+    Image:
+        center_x: self.parent.center_x
+        y: self.parent.y+0.2*self.parent.height
+        height: 0.6*self.parent.height
+        width: max(self.parent.width, sp(10))
+        source: 'atlas://media/homeatlas/homeatlas/options_button_white-2'
+        mipmap: True
+
+<VarBranchButton>:
+    background_normal: 'media/black_pixel.png'
+    background_down: 'media/blue_press_pixel.png'
+    Image:
+        x: self.parent.x + 0.15*self.parent.width
+        y: self.parent.y + 0.15*self.parent.height
+        height: 0.7*self.parent.height
+        width: 0.7*self.parent.width
+        mipmap: True
+        source: 'atlas://media/mainimages/mainatlas/var_branch_logo_white-1'
+
+<DeleteSgfQuestion>:
+    Button:
+        text: 'Cancel'
+        on_press: root.popup.dismiss()
+    Button:
+        text: 'Delete'
+        on_press: root.manager.delete_sgf_from_selection(root.selection)
+        on_release: root.popup.dismiss()
+
+<DeleteCollectionQuestion>:
+    Button:
+        text: 'Cancel'
+        on_press: root.popup.dismiss()
+    Button:
+        text: 'Delete'
+        on_press: root.manager.delete_collection(root.selection)
+        on_release: root.popup.dismiss()
+
+<LDMarker>:
+    canvas:
+        Color:
+            rgb: (1,0,0)
+        Line:
+            points: [self.pos[0]+0.2*self.width,self.pos[1]+0.2*self.height,self.pos[0]+0.8*self.width,self.pos[1]+0.8*self.height]
+            width: 0.04*self.size[0]
+        Line:
+            points: [self.pos[0]+0.2*self.width,self.pos[1]+0.8*self.height,self.pos[0]+0.8*self.width,self.pos[1]+0.2*self.height]
+            width: 0.04*self.size[0]
+
+<NewBoardQuery>
+    orientation: 'vertical'
+    collections_list: collections
+    Label:
+        height: (30,'sp')
+        size_hint_y: None
+        text: 'Where to save the game?'
+    Label:
+        height: (30,'sp')
+        size_hint_y: None
+        text: '(leave blank to create temporary board)'
+    DividerLine
+    ScrollListView:
+        id: collections
+        scroll_distance: 1
+        scroll_timeout: 1000
+    DividerLine
+    BoxLayout:
+        size_hint_y: None
+        height: (40,'sp')
+        orientation: 'horizontal'
+        Label:
+            text: 'Handicap:'
+        NumberChooser:
+            id: handicap
+    DividerLine
+    Label:
+        height: (30,'sp')
+        size_hint_y: None
+        text: 'Board size?'
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: (1.,None)
+        height: (50,'sp')
+        BoardSizeButton:
+            size_hint: (0.333,1.)
+            text: '9x9'
+            group: 'sizebuttons'
+            gridsize: 9 
+        BoardSizeButton:
+            size_hint: (0.333,1.)
+            text: '13x13'
+            group: 'sizebuttons'
+            gridsize: 13
+        BoardSizeButton:
+            id: button19
+            size_hint: (0.333,1.)
+            text: '19x19'
+            group: 'sizebuttons'
+            gridsize: 19
+    DividerLine
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: (1.,None)
+        height: (50,'sp')
+        Button:
+            size_hint: (0.5,1.)
+            text: 'Cancel'
+            on_press: root.popup.dismiss()
+        Button:
+            size_hint: (0.5,1.)
+            text: 'Create new board.'
+            on_press: root.manager.new_board_from_selection(collections.adapter.selection, button19.current_selected_size(),handicap.number)
+            on_release: root.popup.dismiss()
+
+
+<EditPanel>:
+    rows: 2
+    wplay_button: wb
+    bplay_button: bb
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'bwplay'
+        background_normal: 'media/black_pixel.png'
+        id: bb
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_bwstone-1'
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'triangle'
+        background_normal: 'media/black_pixel.png'
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_triangle-2'
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'square'
+        background_normal: 'media/black_pixel.png'
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_square-2'
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'bstone'
+        background_normal: 'media/black_pixel.png'
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_bstone-1'
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'estone'
+        background_normal: 'media/black_pixel.png'
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_estone-1'
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'wbplay'
+        background_normal: 'media/black_pixel.png'
+        id: wb
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_wbstone-1'
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'circle'
+        background_normal: 'media/black_pixel.png'
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_circle-2'
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'cross'
+        background_normal: 'media/black_pixel.png'
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_cross-2'
+    ToggleButton:
+        group: 'editbuttons'
+        on_press: root.current_mode = 'wstone'
+        background_normal: 'media/black_pixel.png'
+        Image:
+            x: self.parent.x + 0.05*self.parent.width
+            y: self.parent.y + 0.05*self.parent.height
+            width: 0.9*self.parent.width
+            height: 0.9*self.parent.height
+            mipmap: True
+            source: 'atlas://media/mainimages/mainatlas/edit_wstone-1'
+    Button:
+        text: 'comment'
+        font_size: (13,'sp')
+        on_press: root.board.get_new_comment()
+        background_normal: 'media/black_pixel.png'
+            
+
+<CollectionNameChooser>:
+    size_hint: (0.85,None)
+    height: (70,'sp')
+    orientation: 'vertical'
+    AndroidTextInput:
+        id: newname
+        text: ''
+        multiline: False
+        size_hint: (1.,None)
+        height: (30,'sp')
+    BoxLayout:
+        height: (50,'sp')
+        orientation: 'horizontal'
+        Button:
+            text: 'Cancel'
+            on_release: root.popup.dismiss()
+        Button:
+            text: 'Create collection'
+            on_press: app.new_collection(newname.text)
+            on_release: root.popup.dismiss()
+
+<SaveQuery>
+    orientation: 'vertical'
+    collections_list: collections
+    ScrollListView:
+        id: collections
+        scroll_distance: 1
+        scroll_timeout: 1000
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: (1.,0.1)
+        Button:
+            size_hint: (0.5,1.)
+            text: 'Cancel'
+            on_press: root.popup.dismiss()
+        Button:
+            size_hint: (0.5,1.)
+            text: 'Save'
+            on_press: root.board.save_sgf_in(collections.adapter.selection)
+            on_release: root.popup.dismiss()
+
+<CollectionsIndex>:
+    id: ci
+    collections_list: collections
+    orientation: 'horizontal'
+
+    Widget
+    VDividerLine:
+        vgap: 0
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: None
+        width: min(root.width,dp(700))
+        ScrollListView:
+            id: collections
+            scroll_distance: 1
+            scroll_timeout: 1000
+            size_hint_y: 0.9
+        DividerLine
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            Button:
+                size_hint: (0.25,1.)
+                text: 'Delete\ncollection'
+                halign: 'center'
+                valign: 'middle'
+                on_press: sgfmodels.delete_collection_from(collections.adapter.selection); app.manager.refresh_collections_index()
+                background_normal: 'media/red_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            VDividerLine
+            Button:
+                size_hint: (0.25,1.)
+                text: 'New\ncollection'
+                halign: 'center'
+                valign: 'middle'
+                on_release: app.new_collection_query()
+                background_normal: 'media/blue_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            VDividerLine
+            Button:
+                size_hint: (0.5,1.)
+                text: 'View selected collection'
+                on_release: root.managedby.view_or_open_collection(collections.adapter.selection)
+                background_normal: 'media/green_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+    VDividerLine:
+        vgap: 0
+    Widget
+
+<PrintyButton>:
+    text: ''
+
+<MySpinnerOption>:
+    height: (48,'sp')
+    color: col.icon
+    background_color: col.dark_primary
+
+
+<GameInfo>:
+    orientation: 'vertical'
+    do_scroll_x: False
+    entries_layout: entries
+
+    ScrollView:
+        scroll_distance: 1
+        scroll_timeout: 1000
+        BoxLayout:
+            id: entries
+            orientation: 'vertical'
+            size_hint_y: None
+            height: (320,'sp')
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: 'W player:'
+                    textsize: self.size
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint: (0.65,1.)
+                Label:
+                    text: 'W rank:'
+                    size_hint: (0.35,1.)
+            BoxLayout:
+                orientation: 'horizontal'
+                AndroidTextInput:
+                    id: wname_text
+                    text: root.wname
+                    multiline: False
+                    size_hint: (0.65,1.)
+                Widget:
+                    size_hint_x: None
+                    width: 5
+                AndroidTextInput:
+                    id: wrank_text
+                    text: root.wrank
+                    multiline: False
+                    size_hint: (0.35,1.)
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: 'B player:'
+                    size_hint: (0.65,1.)
+                Label:
+                    text: 'B rank:'
+                    size_hint: (0.35,1.)
+            BoxLayout:
+                orientation: 'horizontal'
+                AndroidTextInput:
+                    id: bname_text
+                    text: root.bname
+                    multiline: False
+                    size_hint: (0.65,1.)
+                Widget:
+                    size_hint_x: None
+                    width: 5
+                AndroidTextInput:
+                    id: brank_text
+                    text: root.brank
+                    multiline: False
+                    size_hint: (0.35,1.)
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: 'Komi:'
+                Label:
+                    text: 'Result:'
+            BoxLayout:
+                orientation: 'horizontal'
+                AndroidTextInput:
+                    id: komi_text
+                    text: root.komi
+                    multiline: False
+                Label:
+                    id: result_text
+                    text: root.result
+                    multiline: False
+            Label:
+                text: 'Event:'
+            AndroidTextInput:
+                id: event_text
+                text: root.event
+                multiline: False
+            Label:
+                text: 'Game name:'
+            AndroidTextInput:
+                id: gname_text
+                text: root.gname
+                multiline: False
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: 'Ruleset:'
+                    textsize: self.size
+                    halign: 'left'
+                    valign: 'middle'
+                    size_hint: (0.5,1.)
+                Label:
+                    text: 'Source:'
+                    size_hint: (0.5,1.)
+            BoxLayout:
+                orientation: 'horizontal'
+                AndroidTextInput:
+                    id: ruleset_text
+                    text: root.ruleset
+                    multiline: False
+                    size_hint: (0.5,1.)
+                Widget:
+                    size_hint_x: None
+                    width: 5
+                AndroidTextInput:
+                    id: source_text
+                    text: root.source
+                    multiline: False
+                    size_hint: (0.5,1.)
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: (40,'sp')
+        Button:
+            text: 'Cancel'
+            on_release: root.release_keyboards(); root.popup.dismiss()
+        Button:
+            text: 'Submit'
+            on_release: root.release_keyboard(); root.popup.dismiss()
+            on_press: root.board.set_game_info({'wname':str(wname_text.text),'wrank':str(wrank_text.text),'bname':str(bname_text.text),'brank':str(brank_text.text),'komi':str(komi_text.text),'result':str(result_text.text),'event':str(event_text.text),'gname':str(gname_text.text),'rules':str(ruleset_text.text),'source':str(source_text.text)})
+     
+        
+        
+    
+
+<GuessPopup>
+    canvas:
+        Color:
+            rgba: [self.colour[0],self.colour[1],self.colour[2],self.alpha]
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<StandaloneGameChooser>:
+    id: sgc
+    orientation: 'horizontal'
+    gameslist: gl
+    Widget
+    VDividerLine:
+        vgap: 0
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: None
+        width: min(root.width, dp(700))
+        Label:
+            height: 30,'sp'
+            size_hint_y: None
+            text: root.collection.name + ' Collection'
+            font_size: (25,'sp')
+            textsize: self.size
+            valign: 'middle'
+        DividerLine
+        ScrollListView:
+            id: gl
+            scroll_distance: 1
+            scroll_timeout: 1000
+            size_hint_y: 0.9
+        DividerLine
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            Button:
+                size_hint: (0.22222,1.)
+                text: 'Delete'
+                halign: 'center'
+                valign: 'middle'
+                on_press: root.managedby.query_delete_sgf(gl.adapter.selection)
+                background_normal: 'media/red_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            VDividerLine
+            Button:
+                size_hint: (0.22222,1.)
+                text: 'New game'
+                on_release: root.managedby.new_board(collection_model=root.collection)
+                halign: 'center'
+                valign: 'middle'
+                background_normal: 'media/blue_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            VDividerLine
+            Button:
+                size_hint: (0.22222,1.)
+                text: 'Random'
+                on_release: app.manager.random_game_from(root.collection)
+                background_normal: 'media/orange_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            VDividerLine
+            Button:
+                size_hint: (0.3333,1.)
+                text: 'Open selected'
+                on_release: root.managedby.board_from_gamechooser(gl.adapter.selection)
+                background_normal: 'media/green_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+    VDividerLine:
+        vgap: 0
+    Widget
+
+<CollectionChooserButton>:
+    height: (50,'sp')
+    size_hint: 1.,None
+    background_normal: './media/white_pixel.png'
+    background_color: [0,0,0,1]
+    deselected_color: [0,0,0,1]
+    selected_color: [ 0.03515625,  0.1171875 ,  0.1484375 ]
+    BoxLayout:
+        pos: self.parent.pos
+        size: self.parent.size
+        orientation: 'vertical'
+        Label:
+            text: '%s (%d games)' % (root.colname, root.numentries)
+            textsize: self.size
+            halign: 'left'
+            valign: 'middle'
+        Widget:
+            size_hint:(1.,None)
+            height: (2,'sp')
+            canvas:
+                Color:
+                    rgb: (0.195,0.641,0.805)
+                Line:
+                    points: [self.x + 0.05*self.width, self.y + 0.5*self.height, self.x + 0.95*self.width, self.y + 0.5*self.height]
+                    width: 1
+                    cap: 'square'
+            
+
+<OpenChooserButton>:
+    size_hint_y: None
+    height: (90,'sp')
+    background_normal: './media/white_pixel.png'
+    background_color: [0,0,0,1]
+    deselected_color: [0,0,0,1]
+    selected_color: [ 0.03515625,  0.1171875 ,  0.1484375 ]
+    BoxLayout:
+        size: self.parent.size
+        pos: self.parent.pos
+        orientation: 'vertical'
+        Label:
+            padding: (-10,0)
+            text: root.wname + ' vs ' + root.bname
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            markup: True
+        Label:
+            padding: (-10,0)
+            text: root.date
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+        Label:
+            padding: (-10,0)
+            text: root.filepath
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+        DividerLine:
+            linewidth: 1
+    
+
+<GameChooserButton>:
+    info: gamechooser
+    height: (80,'sp')
+    size_hint: (1,None)
+    background_normal: './media/white_pixel.png'
+    background_color: [0,0,0,1]
+    deselected_color: [0,0,0,1]
+    selected_color: [ 0.03515625,  0.1171875 ,  0.1484375 ]
+    GameChooserInfo:
+        size: self.parent.size
+        pos: self.parent.pos
+        id: gamechooser
+        filepath: self.parent.filepath
+        bname: self.parent.bname
+        wname: self.parent.wname
+        brank: self.parent.brank
+        wrank: self.parent.wrank
+        result: self.parent.result
+        date: self.parent.date
+
+
+<GameChooserInfo>:
+    id: gc
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'horizontal'
+        WhiteStoneImage:
+            size: self.parent.height,self.parent.height
+            size_hint: None,None
+        Label:
+            size_hint: (0.65,1.)
+            text: gc.wname + ' ' + gc.wrank
+            text_size: self.width-10,self.height
+            halign: 'left'
+            valign: 'middle'
+            markup: True
+        Label:
+            size_hint: (0.35,1.)
+            text: gc.date
+            text_size: self.width-10,self.height
+            halign: 'right'
+            valign: 'middle'
+    BoxLayout:
+        orientation: 'horizontal'
+        BlackStoneImage:
+            size: self.parent.height,self.parent.height
+            size_hint: None, None
+        Label:
+            size_hint: (0.65,1.)
+            text: gc.bname + ' ' + gc.brank
+            text_size: self.width-10,self.height
+            halign: 'left'
+            valign: 'middle'
+            markup: True
+        Label:
+            size_hint: (0.35,1.)
+            text: gc.result
+            text_size: self.width-10,self.height
+            halign: 'right'
+            valign: 'middle'
+    BoxLayout:
+        orientation: 'horizontal'
+        Label:
+            text: gc.filepath
+            text_size: self.width-20,self.height
+            halign: 'left'
+            valign: 'middle'
+    Widget:
+        size_hint_y: None
+        height: (2,'sp')
+        canvas:
+            Color:
+                rgb: (0.195,0.641,0.805)
+            Line:
+                points: [self.x + 0.05*self.width, self.y + 0.5*self.height, self.x + 0.95*self.width, self.y + 0.5*self.height]
+                width: 1
+
+         
+
+        
+
+<WhiteStoneImage>:
+    canvas:
+        Color:
+            rgba: (0.2,0.2,0.2,1)
+        Ellipse:
+            pos: self.pos[0] + 0.1*self.width, self.pos[1] + 0.1*self.height
+            size: (0.8*self.height,0.8*self.height)
+        Color:
+            rgb: (1,1,1)
+        Ellipse:
+            pos: self.pos[0] + 0.15*self.width, self.pos[1] + 0.15*self.height
+            size: (0.7*self.height,0.7*self.height)
+
+<BlackStoneImage>:
+    canvas:
+        Color:
+            rgba: (0.8,0.8,0.8,1)
+        Ellipse:
+            pos: self.pos[0] + 0.1*self.width, self.pos[1] + 0.1*self.height
+            size: (0.8*self.height,0.8*self.height)
+        Color:
+            rgb: (0,0,0)
+        Ellipse:
+            pos: self.pos[0] + 0.15*self.width, self.pos[1] + 0.15*self.height
+            size: (0.7*self.height,0.7*self.height)
+
+
+<NextButton@Button>:
+    canvas:
+        Color:
+            rgb: (0.9,0.9,0.9)
+        Line:
+            points: [self.x + 0.5*self.width - 5, self.y + 0.5*self.height - 10, self.x + 0.5*self.width + 5, self.y + 0.5*self.height, self.x + 0.5*self.width - 5, self.y + 0.5*self.height + 10]
+            width: 2
+            cap: 'square'
+            joint: 'miter'
+
+<PrevButton@Button>:
+    canvas:
+        Color:
+            rgb: col.icon
+        Line:
+            points: [self.x + 0.5*self.width + 5, self.y + 0.5*self.height - 10, self.x + 0.5*self.width - 5, self.y + 0.5*self.height, self.x + 0.5*self.width + 5, self.y + 0.5*self.height + 10]
+            width: 2
+            cap: 'square'
+            joint: 'miter'
+           
+<CommentInput>:
+    orientation: 'vertical'
+
+    AndroidTextInput:
+        id: commentinput
+        text: self.parent.comment
+        size_hint: (1.,0.9)
+        focus: True
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: (1.,0.1)
+        Button:
+            text: 'Cancel'
+            on_press: self.parent.parent.popup.dismiss()
+        Button:
+            text: 'Submit'
+            on_press: self.parent.parent.board.set_new_comment(commentinput.text)
+            on_release: self.parent.parent.popup.dismiss()
+
+<MakeMoveMarker>:
+    pos: self.set_position_from_coord(self.coord)
+    size: self.board.stonesize
+    canvas:
+        Color:
+            rgba: self.colour
+        Ellipse:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgb: (0.095,0,0.434)
+        Line:
+            points: [self.board.x,self.y + 0.5*self.height,self.board.x + self.board.width,self.y + 0.5*self.height]
+            width: 2.
+            cap: 'none'
+        Line:
+            points: [self.x + 0.5*self.width,self.board.y,self.x + 0.5*self.width,self.board.y + self.board.height]
+            width: 2.
+            cap: 'none'
+        
+<VDividerLine@Widget>:
+    size_hint_x: None
+    width: 1
+    linewidth: 1
+    vgap: 1
+    canvas:
+        Color:
+            rgb: col.divider
+        Line:
+            points: [self.x + 0.5*self.width, self.y + 0.5*self.vgap*self.height, self.x+0.5*self.width, self.y + (1-0.5*self.vgap)*self.height]
+            width: self.linewidth
+        
+<DividerLine@Widget>:
+    height: (1,'dp')
+    size_hint_y: None
+    linewidth: 1
+    vgap: 1
+    canvas:
+        Color:
+            rgba: col.divider
+        Line:
+            points: [self.x, self.y + 0.5*self.height, self.right, self.y + 0.5*self.height]
+            width: self.linewidth
+
+    
+<HomeScreen>:
+    id: homeroot
+    orientation: 'vertical'
+    gamesview: opengames
+    opengames: opengames
+    pb: pb
+
+    BoxLayout:
+        size_hint: ((1.,0.2))
+        orientation: 'horizontal'
+        Button:
+            height: self.parent.height
+            width: self.parent.height
+            size_hint: (None,None)
+            on_release: root.managedby.open_help()
+            background_normal: 'media/black_pixel.png'
+            background_down: 'media/blue_press_pixel.png'
+            Label:
+                pos: self.parent.pos
+                size: self.parent.size
+                font_size: (0.9*self.height,'px')
+                text_size: self.size
+                halign: 'center'
+                valign: 'middle'
+                text: '?'
+        Image:
+            mipmap: True
+            source: 'media/logo_big.png'
+        Button:
+            height: self.parent.height
+            width: self.parent.height
+            size_hint: (None,None)
+            on_release: root.managedby.app.open_settings()
+            background_normal: 'media/black_pixel.png'
+            background_down: 'media/blue_press_pixel.png'
+            Image:
+                x: self.parent.x
+                y: self.parent.y+0.2*self.parent.height
+                height: 0.6*self.parent.height
+                width: self.parent.width
+                source: 'atlas://media/homeatlas/homeatlas/options_button_white-2'
+                mipmap: True
+            
+    DividerLine:
+        height: (10,'sp')
+    BoxLayout:
+        orientation: 'horizontal'
+        cols: 3
+        size_hint: (1.,0.25)
+        Button:
+            on_release: homeroot.managedby.switch_and_set_back('Collections Index')
+            background_normal: 'media/black_pixel.png'
+            background_down: 'media/blue_press_pixel.png'
+            BoxLayout:
+                orientation: 'vertical'
+                size: self.parent.size
+                pos: self.parent.pos
+                Image:
+                    source: 'atlas://media/homeatlas/homeatlas/collection_logo_white-2'
+                    mipmap: True
+                    size_hint: (1.,1.)
+                Label:
+                    text: 'Collections'
+                    halign: 'center'
+                    valign: 'middle'
+                    size_hint_y: 0.3
+                    font_size: pb.font_size
+        VDividerLine
+        Button:
+            on_release: homeroot.managedby.new_board_dialog()
+            background_normal: 'media/black_pixel.png'
+            background_down: 'media/blue_press_pixel.png'
+            BoxLayout:
+                orientation: 'vertical'
+                size: self.parent.size
+                pos: self.parent.pos
+                Image:
+                    source: 'atlas://media/homeatlas/homeatlas/finallogo_newboard2_white-2'
+                    mipmap: True
+                    size_hint: (1.,1.)
+                Label:
+                    text: 'New board'
+                    halign: 'center'
+                    valign: 'middle'
+                    size_hint_y: 0.3
+                    font_size: pb.font_size
+        VDividerLine
+        Button:
+            on_release: homeroot.managedby.open_sgf_dialog()
+            background_normal: 'media/black_pixel.png'
+            background_down: 'media/blue_press_pixel.png'
+            BoxLayout:
+                orientation: 'vertical'
+                size: self.parent.size
+                pos: self.parent.pos
+                Image:
+                    source: 'atlas://media/homeatlas/homeatlas/open_sgf_logo_white-2'
+                    mipmap: True
+                    size_hint: (1.,1.)
+                Label:
+                    text: 'SGF from file'
+                    halign: 'center'
+                    valign: 'middle'
+                    size_hint_y: 0.3
+                    font_size: pb.font_size
+    DividerLine
+    Label:
+        text: 'Currently open games:'
+        font_size: pb.font_size
+        size_hint: (1.,0.06)
+    DividerLine
+    ScrollListView:
+        id: opengames
+        scroll_distance: 1
+        scroll_timeout: 1000
+        size_hint: (1.,0.60)
+        adapter: la.ListAdapter(data=[],args_converter = lambda c,j: main.get_game_chooser_info_from_boardname(root.managedby,j), selection_mode='single', allow_empty_selection=True,cls=Factory.OpenChooserButton)
+        selection: self.adapter.selection
+    DividerLine
+    BoxLayout:
+        size_hint: (1.,0.1)
+        orientation: 'horizontal'
+        Button:
+            text: 'Close selected.'
+            font_size: 0.3*self.height
+            on_release: root.managedby.close_board_from_selection(opengames.adapter.selection)
+            background_normal: 'media/black_pixel.png'
+            background_down: 'media/blue_press_pixel.png'
+        VDividerLine
+        Button:
+            id: pb
+            text: 'Switch to selected.'
+            font_size: 0.3*self.height
+            on_release: root.managedby.set_current_from_opengameslist(opengames.adapter.selection)
+            background_normal: 'media/black_pixel.png'
+            background_down: 'media/blue_press_pixel.png'
+
+<TabletHomeScreen>:
+    id: homeroot
+    orientation: 'horizontal'
+    gamesview: opengames
+    opengames: opengames
+    pb: pb
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: 0.5
+        BoxLayout:
+            size_hint_y: None
+            height: (150,'dp')
+            orientation: 'horizontal'
+            Button:
+                height: self.parent.height
+                width: self.parent.height
+                size_hint: (None,None)
+                on_release: root.managedby.open_help()
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+                Label:
+                    pos: self.parent.pos
+                    size: self.parent.size
+                    font_size: (0.9*self.height,'px')
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+                    text: '?'
+            Image:
+                mipmap: True
+                source: 'media/logo_big.png'
+            Button:
+                height: self.parent.height
+                width: self.parent.height
+                size_hint: (None,None)
+                on_release: root.managedby.app.open_settings()
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+                Image:
+                    x: self.parent.x
+                    y: self.parent.y+0.2*self.parent.height
+                    height: 0.6*self.parent.height
+                    width: self.parent.width
+                    source: 'atlas://media/homeatlas/homeatlas/options_button_white-2'
+                    mipmap: True
+
+        DividerLine:
+            height: (10,'sp')
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: (1.,0.25)
+            Button:
+                on_release: homeroot.managedby.switch_and_set_back('Collections Index')
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size: self.parent.size
+                    pos: self.parent.pos
+                    Widget:
+                        size_hint_x: 0.1
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_x: 0.6
+                        Widget:
+                            size_hint_y: 0.1
+                        Image:
+                            source: 'atlas://media/homeatlas/homeatlas/collection_logo_white-2'
+                            mipmap: True
+                            size_hint: (1.,1.)
+                        Widget:
+                            size_hint_y: 0.1
+                    Label:
+                        text: 'Collections'
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.size
+                        font_size: 0.2*self.height
+            DividerLine:
+                linewidth: 1
+            Button:
+                on_release: homeroot.managedby.new_board_dialog()
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size: self.parent.size
+                    pos: self.parent.pos
+                    Widget:
+                        size_hint_x: 0.1
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_x: 0.6
+                        Widget:
+                            size_hint_y: 0.1
+                        Image:
+                            source: 'atlas://media/homeatlas/homeatlas/finallogo_newboard2_white-2'
+                            mipmap: True
+                            size_hint: (1.,1.)
+                        Widget:
+                            size_hint_y: 0.1
+                    Label:
+                        text: 'New board'
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.size
+                        font_size: 0.2*self.height
+            DividerLine:
+                linewidth: 1
+            Button:
+                on_release: homeroot.managedby.open_sgf_dialog()
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size: self.parent.size
+                    pos: self.parent.pos
+                    Widget:
+                        size_hint_x: 0.1
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_x: 0.6
+                        Widget:
+                            size_hint_y: 0.1
+                        Image:
+                            source: 'atlas://media/homeatlas/homeatlas/open_sgf_logo_white-2'
+                            mipmap: True
+                            size_hint: (1.,1.)
+                        Widget:
+                            size_hint_y: 0.1
+                    Label:
+                        text: 'SGF from file'
+                        halign: 'center'
+                        valign: 'middle'
+                        text_size: self.size
+                        font_size: 0.2*self.height
+
+    VDividerLine
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: 0.5
+        Label:
+            text: 'Currently open games:'
+            font_size: pb.font_size
+            size_hint: (1.,0.06)
+        DividerLine
+        ScrollListView:
+            id: opengames
+            scroll_distance: 1
+            scroll_timeout: 1000
+            size_hint: (1.,0.60)
+            adapter: la.ListAdapter(data=[],args_converter = lambda c,j: main.get_game_chooser_info_from_boardname(root.managedby,j), selection_mode='single', allow_empty_selection=True,cls=Factory.OpenChooserButton)
+            selection: self.adapter.selection
+        DividerLine
+        BoxLayout:
+            size_hint: (1.,0.1)
+            orientation: 'horizontal'
+            Button:
+                text: 'Close selected.'
+                font_size: 0.4*self.height
+                on_release: root.managedby.close_board_from_selection(opengames.adapter.selection)
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            VDividerLine
+            Button:
+                id: pb
+                text: 'Switch to selected.'
+                font_size: 0.4*self.height
+                on_release: root.managedby.set_current_from_opengameslist(opengames.adapter.selection)
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+
+<PhoneBoardView>:
+    boardcontainer: bc
+    board: bc.board
+    spinner: navspinner
+
+    orientation: 'vertical'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: (1., None)
+        height: dp(48)
+        canvas:
+            Color:
+                rgba: col.dark_primary
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            padding: dp(2), dp(2)
+            PlayerDetails:
+                id: pd
+                board: bc.board
+                size_hint: (0.75,1.0)
+
+                wtext: bc.board.wname
+                wrank: bc.board.wrank
+                btext: bc.board.bname
+                brank: bc.board.brank
+                next_to_play: bc.board.next_to_play
+                on_next_to_play: self.set_to_play(self.next_to_play)
+
+        ReversibleSpinner:
+            id: navspinner
+            text: 'Navigate'
+            values: ['Navigate','Play','Edit','Score','Guess']
+            size_hint: (0.25,1.0)
+            on_text: bc.board.set_navmode(self,self.text)
+            option_cls: Factory.MySpinnerOption
+
+    BoardContainer:
+        id: bc
+        size_hint_y: None if Window.height > 1.2*Window.width else 0.6
+        height: Window.width
+
+        uielements: {'varbutton': [btn_nextvar]}
+
+    DividerLine:
+
+    BoxLayout:
+        size_hint: (1.0,0.2)
+        orientation: 'horizontal'
+        CarouselLeftArrow:
+            size_hint_x: None
+            width: sp(20)
+            on_press: comcar.load_previous()
+        BoardCarousel:
+            board: bc.board
+            board_navmode: bc.board.navmode
+            loop: True
+            id: comcar
+            scroll_timeout: 0
+            min_move: 0.001
+            CommentBox:
+                id: thecb
+                text: bc.board.permanent_text + bc.board.comment_pre_text + bc.board.comment_text
+                board: bc.board
+            BoxLayout:
+                Widget:
+                    size_hint_x: None
+                    width: (10,'sp')
+                GameSlider:
+                    min: 0
+                    max: bc.board.current_branch_length - 1
+                    value: bc.board.current_node_index
+                    on_value: bc.board.jump_to_node_by_number(int(self.value))
+                Widget:
+                    size_hint_x: None
+                    width: (10,'sp')
+            EditPanel:
+                id: boardedit
+                board: bc.board
+                board_to_play: bc.board.next_to_play
+                board_navmode: bc.board.navmode
+        CarouselRightArrow:
+            size_hint_x: None
+            width: sp(20)
+            on_press: comcar.load_next()
+
+    DividerLine:
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: (1.0,None)
+        height: (45,'sp')
+
+        canvas:
+            Color:
+                rgba: col.dark_primary
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        VarBranchButton:
+            id: btn_varbranch
+            on_release: bc.board.back_to_varbranch()
+            background_color: col.dark_primary
+            background_down_color: col.light_primary
+        VDividerLine
+        PrevButton:
+            id: btn_prevmove
+            on_press: bc.board.time_start();bc.board.retreat_one_move()
+            on_release: bc.board.time_stop()
+            background_color: col.dark_primary
+            background_down_color: col.light_primary
+        VDividerLine
+        Button:
+            id: btn_nextvar
+            text: 'Next var\n (1 / 1)'
+            on_press: bc.board.time_start();bc.board.next_variation()
+            on_release: bc.board.time_stop()
+            background_normal: 'media/dull_pixel.png'
+            background_down: 'media/blue_press_pixel.png'
+            color: col.icon
+        VDividerLine
+        NextButton:
+            board: bc.board
+            id: btn_nextmove
+            on_press: bc.board.time_start();bc.board.advance_one_move()
+            on_release: bc.board.time_stop()
+            background_color: col.dark_primary
+            background_down_color: col.light_primary
+        VDividerLine
+        GameOptionsButton:
+            id: btn_options
+            board: root.board
+            background_color: col.dark_primary
+            background_down_color: col.light_primary
+
+<TabletBoardView>:
+    boardcontainer: bc
+    board: bc.board
+    spinner: navspinner
+
+    orientation: 'vertical'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        Widget:
+            size_hint_x: None
+            width: sp(6)
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.5
+            CommentBox:
+                id: thecb
+                padding: (0,sp(6))
+                text: bc.board.permanent_text + bc.board.comment_pre_text + bc.board.comment_text
+                board: bc.board
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: (100,'sp')
+                CarouselLeftArrow:
+                    size_hint_x: None
+                    width: (20,'sp')
+                    on_press: comcar.load_previous()
+                BoardCarousel:
+                    board: bc.board
+                    board_navmode: bc.board.navmode
+                    loop: True
+                    id: comcar
+                    scroll_timeout: 0
+                    min_move: 0.001
+                    BoxLayout:
+                        Widget:
+                            size_hint_x: None
+                            width: (10,'sp')
+                        GameSlider:
+                            min: 0
+                            max: bc.board.current_branch_length - 1
+                            value: bc.board.current_node_index
+                            on_value: bc.board.jump_to_node_by_number(int(self.value))
+                        Widget:
+                            size_hint_x: None
+                            width: (10,'sp')
+                    EditPanel:
+                        id: boardedit
+                        board: bc.board
+                        board_to_play: bc.board.next_to_play
+                        board_navmode: bc.board.navmode
+                CarouselRightArrow:
+                    size_hint_x: None
+                    width: (20,'sp')
+                    on_press: comcar.load_next()
+
+        VDividerLine:
+            size_hint_x: None
+            width: (2,'sp')
+            vgap: 0
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: None if Window.width > 1.2*Window.height else 0.6
+            width: Window.height - sp(30)
+            Widget:
+                size_hint_y: None
+                height: (5,'sp')
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: (1.,None)
+                height: (30,'sp')
+
+                Widget:
+                    size_hint_x: None
+                    width: (5,'sp')
+                TabletPlayerDetails:
+                    id: pd
+                    board: bc.board
+
+                    wtext: bc.board.wname
+                    wrank: bc.board.wrank
+                    btext: bc.board.bname
+                    brank: bc.board.brank
+                    next_to_play: bc.board.next_to_play
+                    on_next_to_play: self.set_to_play(self.next_to_play)
+                Widget:
+                    size_hint_x: None
+                    width: (5,'sp')
+
+            Widget:
+                size_hint_y: None
+                height: (2,'sp')
+            DividerLine:
+                height: (5,'sp')
+
+            BoardContainer:
+                id: bc
+                size_hint: (1.,0.80)
+
+                uielements: {'varbutton': [btn_nextvar]}
+        Widget:
+            size_hint_x: None
+            width: 4
+        VDividerLine:
+            vgap: 0
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: None
+            width: (72,'dp')
+            Spinner:
+                id: navspinner
+                text: 'Navigate'
+                values: ['Navigate','Play','Edit','Score','Guess', 'Pattern\nsearch']
+                on_text: bc.board.set_navmode(self,self.text)
+                option_cls: Factory.MySpinnerOption
+            DividerLine:
+                linewidth: 1
+            GameOptionsButton:
+                id: btn_options
+                board: root.board
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            DividerLine:
+                linewidth: 1
+            VarBranchButton:
+                id: btn_varbranch
+                on_release: bc.board.back_to_varbranch()
+            DividerLine:
+                linewidth: 1
+            Button:
+                id: btn_nextvar
+                text: 'Next var\n (1 / 1)'
+                on_press: bc.board.time_start();bc.board.next_variation()
+                on_release: bc.board.time_stop()
+                background_normal: 'media/dull_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            DividerLine:
+                linewidth: 1
+            PrevButton:
+                id: btn_prevmove
+                on_press: bc.board.time_start();bc.board.retreat_one_move()
+                on_release: bc.board.time_stop()
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+            DividerLine:
+                linewidth: 1
+            NextButton:
+                board: bc.board
+                id: btn_nextmove
+                on_press: bc.board.time_start();bc.board.advance_one_move()
+                on_release: bc.board.time_stop()
+                background_normal: 'media/black_pixel.png'
+                background_down: 'media/blue_press_pixel.png'
+                
+        
+<GameOptions>:
+    dismiss_on_select: True
+    Button:
+        size_hint_y: None
+        height: (50,'sp')
+        on_press: app.open_settings()
+        on_release: root.select('item9')
+        Image:
+            x: self.parent.x
+            y: self.parent.y + 0.2*self.parent.height
+            height: 0.6*self.parent.height
+            width: self.parent.width
+            source: 'atlas://media/homeatlas/homeatlas/options_button_white-2'
+            mipmap: True
+    Button:
+        size_hint_y: None
+        height: (50,'sp')
+        text: 'Email sgf'
+        on_press: root.board.email_sgf()
+        on_release: root.select('item0')
+    Button:
+        size_hint_y: None
+        height: (50,'sp')
+        text: 'Game info'
+        on_press: root.board.view_game_info()
+        on_release: root.select('item1')
+    Button:
+        size_hint_y: None
+        height: (50,'sp')
+        text: 'Autoplay'
+        on_press: root.board.toggle_autoplay()
+        on_release: root.select('item12')
+    Button:
+        size_hint_y: None
+        height: (50,'sp')
+        text: 'Save'
+        on_press: root.board.save_sgf()
+        on_release: root.select('item2')
+    Button:
+        size_hint_y: None
+        height: (50,'sp')
+        text: 'Save as...'
+        on_press: root.board.save_sgf(mode='saveas')
+        on_release: root.select('item3')
+
+<VarPopup>:
+    size_hint: None, None
+    height: min(dp(500), Window.height)
+    width: min(dp(300), Window.width)
+    
+<PickNewVarType>:
+    BoxLayout:
+        size: self.parent.size
+        pos: self.parent.pos
+        orientation: "vertical"
+        Button:
+            text: "...replace next move?"
+            text_size: self.parent.width,None
+            halign: 'center'
+            valign: 'middle'
+            on_press: self.parent.parent.board.add_new_stone(self.parent.parent.coord,'replacenext')
+            on_release: self.parent.parent.popup.dismiss()
+        Button:
+            text: "...insert move before next?"
+            text_size: self.parent.width,None
+            halign: 'center'
+            valign: 'middle'
+            on_press: self.parent.parent.board.add_new_stone(self.parent.parent.coord,'insert')
+            on_release: self.parent.parent.popup.dismiss()
+        Button:
+            text: "...create new variation?"
+            text_size: self.parent.width,None
+            halign: 'center'
+            valign: 'middle'
+            on_press: self.parent.parent.board.add_new_stone(self.parent.parent.coord)
+            on_release: self.parent.parent.popup.dismiss()
+        Button:
+            text: "...create new mainline variation?"
+            text_size: self.parent.width,None
+            halign: 'center'
+            valign: 'middle'
+            on_press: self.parent.parent.board.add_new_stone(self.parent.parent.coord,'newmain')
+            on_release: self.parent.parent.popup.dismiss()
+        Button:
+            text: "...cancel?"
+            text_size: self.parent.width,None
+            halign: 'center'
+            valign: 'middle'
+            on_press: self.parent.parent.popup.dismiss()
+
+<OpenSGFDialog>:
+    BoxLayout:
+        size: self.parent.size
+        pos: self.parent.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser
+            filters: ['*'] #['*.sgf']
+            path: '.' #root.get_dir()
+            sort_func: lambda j, fs: sorted(j,key=lambda s: s.lower())
+        BoxLayout:
+            size_hint_y: None
+            height: (50,'dp')
+            Button:
+                text: "Cancel"
+                on_release: self.parent.parent.parent.popup.dismiss()
+            Button:
+                text: "Load"
+                on_release: root.manager.open_from_intentpath(filechooser.selection[0]); self.parent.parent.parent.popup.dismiss()
+
+<ButtonTest>:
+    text: 'Next var'
+    background_colour: self.get_colour(self.board)
+
+
+<StarPoint>:
+    canvas:
+        Color:
+            rgb: 0,0,0
+        Ellipse:
+            size: 0.25*self.width, 0.25*self.height
+            pos: self.pos[0] + 0.375*self.width, self.pos[1] + 0.375*self.height
+
+<PlayMarker>:
+    canvas:
+        Color:
+            rgba: self.markercolour[0],self.markercolour[1],self.markercolour[2],0.6
+        Ellipse:
+            pos: self.pos[0] + 0.35*self.width,self.pos[1] + 0.35*self.height
+            size: 0.3*self.width, 0.3*self.width
+
+<KoMarker>:
+    canvas:
+        Color:
+            rgb: (0,0,0)
+        Line:
+            points: [self.pos[0] + 0.2*self.width, self.pos[1]+0.2*self.height, self.pos[0]+0.8*self.width, self.pos[1]+0.2*self.height, self.pos[0]+0.8*self.width,self.pos[1]+0.8*self.height, self.pos[0]+0.2*self.width, self.pos[1]+0.8*self.height]
+            close: True
+            width: 0.02*self.size[0]
+            joint: 'miter'
+
+<TriangleMarker>:
+    canvas:
+        Color:
+            rgb: self.markercolour
+        Line:
+            points: [self.pos[0] + 0.2*self.size[0], self.pos[1] + 0.3*self.size[1], self.pos[0] + 0.8*self.size[0], self.pos[1]+0.3*self.size[1], self.pos[0]+0.5*self.size[0],self.pos[1]+0.85*self.size[1]]
+            close: True
+            width: 0.04*self.size[0]
+            joint: 'miter'
+
+<SquareMarker>:
+    canvas:
+        Color:
+            rgb: self.markercolour
+        Line:
+            points: [self.pos[0] + 0.2*self.width, self.pos[1]+0.2*self.height, self.pos[0]+0.8*self.width, self.pos[1]+0.2*self.height, self.pos[0]+0.8*self.width,self.pos[1]+0.8*self.height, self.pos[0]+0.2*self.width, self.pos[1]+0.8*self.height]
+            close: True
+            width: 0.04*self.size[0]
+            joint: 'miter'
+
+<CircleMarker>:
+    canvas:
+        Color:
+            rgb: self.markercolour
+        Line:
+            points: [self.pos[0],self.pos[1],self.pos[0]+self.width,self.pos[0]+self.height]
+            close: True
+            width: 0.04*self.size[0]
+            circle: (self.pos[0] + 0.5*self.width, self.pos[1]+0.5*self.height, 0.3*self.width, 0, 360, 40)
+        
+<CrossMarker>:
+    canvas:
+        Color:
+            rgb: self.markercolour
+        Line:
+            points: [self.pos[0]+0.2*self.width,self.pos[1]+0.2*self.height,self.pos[0]+0.8*self.width,self.pos[1]+0.8*self.height]
+            width: 0.04*self.size[0]
+        Line:
+            points: [self.pos[0]+0.2*self.width,self.pos[1]+0.8*self.height,self.pos[0]+0.8*self.width,self.pos[1]+0.2*self.height]
+            width: 0.04*self.size[0]
+
+<TextMarker>:
+    canvas.before:
+        Color:
+            rgb: self.markercolour
+    Label:
+        color: self.parent.markercolour
+        pos: self.parent.pos
+        size: self.parent.size
+        text: self.parent.text
+        halign: 'center'
+        valign: 'middle'
+        font_size: (0.7*self.height,'px')
+
+<WhiteStoneSimple>:
+    canvas:
+        Color:
+            rgba: [1,1,1,1]
+        Ellipse:
+            source: './media/stones/white_simple_100.png'
+            size: (self.size[0],self.size[1])
+            pos: self.pos
+
+<BlackStoneSimple>:
+    canvas:
+        Color:
+            rgba: [1,1,1,1]
+        Ellipse:
+            source: './media/stones/black_simple_100.png'
+            size: (self.size[0],self.size[1])
+            pos: self.pos
+
+<WhiteStoneStylised>:
+    canvas:
+        Color:
+            rgba: [1,1,1,1]
+        Ellipse:
+            source: './media/stones/white_stylised_100.png'
+            size: (self.size[0],self.size[1])
+            pos: self.pos
+
+<BlackStoneStylised>:
+    canvas:
+        Color:
+            rgba: [1,1,1,1]
+        Ellipse:
+            source: './media/stones/black_stylised_100.png'
+            size: (self.size[0],self.size[1])
+            pos: self.pos
+
+<WhiteStoneShell>:
+    canvas:
+        Color:
+            rgba: [1,1,1,1]
+        Ellipse:
+            source: root.stone_image
+            size: (self.size[0],self.size[1])
+            pos: self.pos
+
+<WhiteStoneBorderedShell>:
+    canvas:
+        Color:
+            rgba: [1,1,1,1]
+        Ellipse:
+            source: './media/stones/white_borderedshell_100_2.png'
+            size: (self.size[0],self.size[1])
+            pos: self.pos
+
+<BlackStoneBorderedShell>:
+    canvas:
+        Color:
+            rgba: [1,1,1,1]
+        Ellipse:
+            source: './media/stones/black_borderedshell_100.png'
+            size: (self.size[0],self.size[1])
+            pos: self.pos
+
+<BlackStoneShell>:
+    canvas:
+        Color:
+            rgba: [1,1,1,1]
+        Ellipse:
+            source: './media/stones/black_shell_100_2.png'
+            size: (self.size[0],self.size[1])
+            pos: self.pos
+
+<WhiteStoneDrawn>:
+    canvas:
+        Color:
+            rgb: 0,0,0
+        Ellipse:
+            size: self.size
+            pos: self.pos
+
+        Color:
+            rgb: 1,1,1
+        Ellipse:
+            size: (0.9*self.size[0],0.9*self.size[1])
+            pos: self.pos[0] + 0.05*self.width, self.pos[1] + 0.05*self.height
+
+<BlackStoneDrawn>:
+    canvas:
+        Color:
+            rgb: 0,0,0
+        Ellipse:
+            size: self.size
+            pos: self.pos
+
+        Color:
+            rgb: 0,0,0
+        Ellipse:
+            size: (0.9*self.size[0],0.9*self.size[1])
+            pos: self.pos[0] + 0.05*self.width, self.pos[1] + 0.05*self.height
+
+
+<Stone>:
+    canvas:
+        Ellipse:
+            size: (0.9*self.size[0],0.9*self.size[1])
+            pos: self.pos[0] + 0.05*self.width, self.pos[1] + 0.05*self.height
+
+<VarStone>:
+    canvas:
+        Color:
+            rgba: self.colour
+        Ellipse:
+            size: (0.9*self.size[0],0.9*self.size[1])
+            pos: self.pos[0] + 0.05*self.width, self.pos[1] + 0.05*self.height
+    Label:
+        size: self.parent.size
+        pos: self.parent.pos
+        text: self.parent.text
+        color: self.parent.textcolour
+
+
+<GuiBoard>:
+    gobansize: self.size
+    showcoords: False
+    numcells: self.gridsize + 1 + int(self.showcoords)
+    boardindent: float(self.width) / self.numcells, float(self.height) / self.numcells
+    boardlength: self.size[0] * float(self.gridsize-1)/self.numcells
+    stonesize: (float(self.gobansize[0])/(self.numcells),float(self.gobansize[0])/(self.numcells))
+    gridspacing: float(self.width)/(self.numcells)
+
+    on_gridsize: self.draw_starpoints()
+    
+    canvas:
+        Color:
+            rgb: (0.980, 0.766, 0.402)
+        Rectangle:
+            source: root.board_path
+            pos: self.gobanpos
+            size: self.gobansize
+
+        Color:
+            hsv: (0,0,0)
+        Line:
+            points: [self.gobanpos[0] + self.boardindent[0], self.gobanpos[1] + self.boardindent[1], self.gobanpos[0] + self.width - self.boardindent[0], self.gobanpos[1] + self.boardindent[1], self.gobanpos[0] + self.width - self.boardindent[0], self.gobanpos[1] + self.height - self.boardindent[1], self.gobanpos[0] + self.boardindent[0], self.gobanpos[1] + self.height - self.boardindent[1]]
+            width: 1.0
+            close: True
+
+        Line:
+            points: self.gridlines
+            width: 1.0
+
+<BoardContainer>:
+    board: theboard
+
+    GuiBoard:
+        id: theboard
+        cache: app.cache
+        size: self.parent.boardsize
+        pos: self.parent.boardpos
+        uielements: self.parent.uielements
+        navmode: 'Play'
+
+<TabletPlayerDetails>:
+    orientation: 'horizontal'
+    spacing: 1
+    wstone: white_stone
+    bstone: black_stone
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        Image:
+            id: white_stone
+            size_hint: None, None
+            size: self.parent.height, self.parent.height
+            source: 'atlas://media/mainimages/mainatlas/white_stone_pd-1'
+            mipmap: True
+            canvas:
+                Color:
+                    rgba: self.parent.parent.wtoplaycolour
+                Ellipse:
+                    pos: self.pos[0] + 0.35*self.width, self.pos[1] + 0.35*self.height
+                    size: 0.3*self.width,0.3*self.height
+        Label:
+            text: ''.join(('',self.parent.parent.wtext,' ',self.parent.parent.wrank,''))
+            font_size: (18,'sp')
+            markup: True
+            text_size: self.width-20, self.height
+            halign: 'left'
+            valign: 'middle'
+
+        Label:
+            text: ''.join(('',self.parent.parent.btext,' ',self.parent.parent.brank,''))
+            font_size: (20,'sp')
+            markup: True
+            text_size: self.width-20, self.height
+            halign: 'right'
+            valign: 'middle'
+        Image:
+            id: black_stone
+            size_hint: None, None
+            size: self.parent.height, self.parent.height
+            source: 'atlas://media/mainimages/mainatlas/black_stone_pd-1'
+            mipmap: True
+            canvas:
+                Color:
+                    rgba: self.parent.parent.btoplaycolour
+                Ellipse:
+                    pos: self.pos[0] + 0.35*self.width, self.pos[1] + 0.35*self.height
+                    size: 0.3*self.width,0.3*self.height
+
+<PlayerDetails>:
+    orientation: 'vertical'
+    spacing: 1
+    wstone: white_stone
+    bstone: black_stone
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        Image:
+            id: white_stone
+            size_hint: None, None
+            size: self.parent.height, self.parent.height
+            source: 'atlas://media/mainimages/mainatlas/white_stone_pd-1'
+            mipmap: True
+            canvas:
+                Color:
+                    rgba: self.parent.parent.wtoplaycolour
+                Ellipse:
+                    pos: self.pos[0] + 0.35*self.width, self.pos[1] + 0.35*self.height
+                    size: 0.3*self.width,0.3*self.height
+        Label:
+            text: ''.join(('',self.parent.parent.wtext,' ',self.parent.parent.wrank,''))
+            font_size: 0.7*self.height
+            markup: True
+            text_size: self.width-20, self.height
+            halign: 'left'
+            valign: 'middle'
+            color: col.icon
+
+    BoxLayout:
+        orientation: 'horizontal'
+        Image:
+            id: black_stone
+            size_hint: None, None
+            size: self.parent.height, self.parent.height
+            source: 'atlas://media/mainimages/mainatlas/black_stone_pd-1'
+            mipmap: True
+            canvas:
+                Color:
+                    rgba: self.parent.parent.btoplaycolour
+                Ellipse:
+                    pos: self.pos[0] + 0.35*self.width, self.pos[1] + 0.35*self.height
+                    size: 0.3*self.width,0.3*self.height
+        Label:
+            text: ''.join(('',self.parent.parent.btext,' ',self.parent.parent.brank,''))
+            font_size: 0.7*self.height
+            markup: True
+            text_size: self.width-20, self.height
+            halign: 'left'
+            valign: 'middle'
+            color: col.icon
+
+        
+
+        
+
+<CommentBox>:
+    textbox: thetb
+    do_scroll_x: False
+    padding: (0, 0)
+
+    on_text: self.scroll_y = 1; self.scroll_timeout=0; self.scroll_timeout = 55
+
+    GridLayout:
+        cols: 1
+        spacing: 10
+        size_hint_y: None
+        height: max(thetb.texture_size[1], max(sp(100), thetb.height))
+
+        Label:
+            id: thetb
+            # text: root.pre_text + root.text
+            markup: True
+            padding: root.padding
+            text_size: self.width-10, None
+            size_hint: (1, None)
+            size: self.parent.width-10, self.texture_size[1]
+            
