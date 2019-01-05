@@ -1519,6 +1519,7 @@
                 lz_name: bc.board.lz_name
                 lz_version: bc.board.lz_version
                 lz_ready: bc.board.lz_ready
+                lz_analysis: bc.board.lz_analysis
                 board: bc.board
             BoxLayout:
                 Widget:
@@ -2235,7 +2236,7 @@
 <LzInfoPanel>:
     orientation: 'horizontal'
     Label:
-        text: '{} {} is {}'.format(root.lz_name, root.lz_version, 'ready' if root.lz_ready else 'not ready')
+        text: '{} {} is {}\n{}'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, 'ready' if root.lz_ready else 'not ready', root.analysis_string(root.lz_analysis))
         color: 1, 1, 1, 1
     ToggleButton:
         text: 'ponder'

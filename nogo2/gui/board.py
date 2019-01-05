@@ -689,6 +689,7 @@ class GuiBoard(Widget):
     lz_ready = BooleanProperty(False)
     lz_version = StringProperty('')
     lz_name = StringProperty('')
+    lz_analysis = ListProperty([])
 
     def __init__(self, *args, **kwargs):
         super(GuiBoard, self).__init__(*args, **kwargs)
@@ -706,6 +707,7 @@ class GuiBoard(Widget):
         if self.lz_wrapper.lz_name is not None:
             self.lz_name = self.lz_wrapper.lz_name
         self.lz_ready = self.lz_wrapper.is_ready()
+        self.lz_analysis = self.lz_wrapper.current_analysis
 
     def lz_ponder(self, active):
         self.lz_wrapper.toggle_ponder(active)

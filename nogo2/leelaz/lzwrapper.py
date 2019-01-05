@@ -23,6 +23,8 @@ class LeelaZeroWrapper(object):
         self.pondering = False
         self.process = None
 
+        self.current_analysis = []
+
         # LZ data to be read from the process
         self.lz_name = None
         self.lz_version = None
@@ -78,8 +80,7 @@ class LeelaZeroWrapper(object):
         print('Received line: "{}"'.format(line.strip()))
 
         if line.startswith('info'):
-            # parse analysis
-            pass
+            self.parse_lz_analysis(line)
 
         elif ' -> ' in line:
             # parse best move info
@@ -107,6 +108,36 @@ class LeelaZeroWrapper(object):
         # also add the line to our log
         if line.strip():
             self.lz_output.append(line.strip())
+        
+    def parse_lz_analysis(self, line):
+        moves = line.split('info')
+        moves = [m.strip() for m in moves][1:]
+
+        self.current_analysis = [self.parse_lz_analysis_move(m) for m in moves]
+
+    def parse_lz_analysis_move(self, move):
+        move_info = {}
+        words = move.split(' ')
+
+        word = words.pop(0)
+        assert word == 'move'
+
+        word = words.pop(0)
+        move_info['coordinates'] = word
+
+        word = words.pop(0)
+        assert word == 'visits'
+
+        word = words.pop(0)
+        move_info['visits'] = int(word)
+
+        word = words.pop(0)
+        assert word == 'winrate'
+
+        word = words.pop(0)
+        move_info['winrate'] = float(word) / 100.0
+
+        return move_info
 
     def handle_command_response(self, number, response):
         command = self.commands_awaiting_response.pop(number)
@@ -158,4 +189,3 @@ class LeelaZeroWrapper(object):
 
     def kill(self):
         self.process.kill(9)
-        
