@@ -66,6 +66,7 @@ if platform == 'android':
     from abstract.board import *
     # from sgfcollections import CollectionChooserButton
     from gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
+    from gui.lzpanel import LzInfoPanel
     from widgetcache import WidgetCache
 
     import leelaz.lzwrapper
@@ -74,6 +75,7 @@ else:
     from nogo2.abstract.board import *
     # from sgfcollections import CollectionChooserButton
     from nogo2.gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
+    from nogo2.gui.lzpanel import LzInfoPanel
     from nogo2.widgetcache import WidgetCache
 
     from nogo2.leelaz import lzwrapper
@@ -605,10 +607,6 @@ class GuiBoard(Widget):
     gameinfo = DictProperty({})
     sgf_model = ObjectProperty(None, allownone=True)
 
-    #kinterface = ObjectProperty(None)
-
-    #areamarker = ObjectProperty(None, allownone=True)
-
     input_mode = OptionProperty(
         'play',
         options=[
@@ -621,10 +619,6 @@ class GuiBoard(Widget):
     autoplay_index = BoundedNumericProperty(2, min=0, max=9)
 
     board_path = StringProperty('./media/boards/none.png')
-    #    def on_board_path(self,*args,**kwargs):
-    #        print 'board path changed',args,kwargs
-    #        import os
-    #        print 'exists?', os.path.exists(self.board_path)
 
     cache = ObjectProperty(WidgetCache())
 
@@ -655,10 +649,6 @@ class GuiBoard(Widget):
     permanent_text = StringProperty('')
     comment_pre_text = StringProperty('')
     comment_text = StringProperty('')
-    # def on_comment_pre_text(self,*args):
-    #     print 'on_comment_pre_text',args
-    # def on_comment_text(self,*args):
-    #     print 'on_comment_text',args
 
     # Board flipping
     flip_horiz = BooleanProperty(False)
@@ -681,6 +671,44 @@ class GuiBoard(Widget):
     ]
     coordinates = BooleanProperty(False)
     coordinate_labels = ListProperty([])
+
+    stones = DictProperty({})
+    starpoints = DictProperty()
+    starpoint_positions = DictProperty(starposs)
+
+    gobansize = ListProperty((100, 100))
+    numcells = NumericProperty(10)
+    boardindent = ListProperty((100, 100))
+    stonesize = ListProperty((100, 100))
+    gridspacing = NumericProperty(10)
+    gridlines = ListProperty([])
+
+    gobanpos = ListProperty((100, 100))
+
+    lz_wrapper = ObjectProperty()
+    lz_ready = BooleanProperty(False)
+    lz_version = StringProperty('')
+    lz_name = StringProperty('')
+
+    def __init__(self, *args, **kwargs):
+        super(GuiBoard, self).__init__(*args, **kwargs)
+        print(('GuiBoard init, making abstractboard with gridsize',
+               self.gridsize))
+        self.abstractboard = AbstractBoard(gridsize=self.gridsize)
+        self.reset_abstractboard()
+
+        self.lz_wrapper = lzwrapper.LeelaZeroWrapper()
+        Clock.schedule_interval(self.check_lz_status, 0.3)
+
+    def check_lz_status(self, dt):
+        if self.lz_wrapper.lz_version is not None:
+            self.lz_version = self.lz_wrapper.lz_version
+        if self.lz_wrapper.lz_name is not None:
+            self.lz_name = self.lz_wrapper.lz_name
+        self.lz_ready = self.lz_wrapper.is_ready()
+
+    def lz_ponder(self, active):
+        self.lz_wrapper.toggle_ponder(active)
 
     def on_coordinates(self, obj, val):
         print(('on_coordinates', obj, val))
@@ -711,28 +739,6 @@ class GuiBoard(Widget):
     # def add_widget(self,*args,**kwargs):
     #     print 'board add_widget called with...',args
     #     super(GuiBoard,self).add_widget(*args)
-
-    stones = DictProperty({})
-    starpoints = DictProperty()
-    starpoint_positions = DictProperty(starposs)
-
-    gobansize = ListProperty((100, 100))
-    numcells = NumericProperty(10)
-    boardindent = ListProperty((100, 100))
-    stonesize = ListProperty((100, 100))
-    gridspacing = NumericProperty(10)
-    gridlines = ListProperty([])
-
-    gobanpos = ListProperty((100, 100))
-
-    def __init__(self, *args, **kwargs):
-        super(GuiBoard, self).__init__(*args, **kwargs)
-        print(('GuiBoard init, making abstractboard with gridsize',
-               self.gridsize))
-        self.abstractboard = AbstractBoard(gridsize=self.gridsize)
-        self.reset_abstractboard()
-
-        self.lz_wrapper = lzwrapper.LeelaZeroWrapper()
 
     def add_handicap_stones(self, num):
         #print 'asked to add handicap stones',num

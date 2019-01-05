@@ -64,7 +64,7 @@ class LeelaZeroWrapper(object):
 
         self.process.sendline(command_string)
         print('Sent command "{}"'.format(command_string))
-                                
+
     def read(self):
         while True:
             if not self.process.isalive():
@@ -113,6 +113,10 @@ class LeelaZeroWrapper(object):
 
         print('# command "{}" received response "{}"'.format(command, response))
         
+        if command.startswith('lz-analyze'):
+            self.pondering = True
+        else:
+            self.pondering = False
         if command == 'version':
             self.lz_version = response
         elif command == 'name':
@@ -133,6 +137,13 @@ class LeelaZeroWrapper(object):
         self.send_command('play {colour} {coordinates}'.format(
             colour=colour_string,
             coordinates=coordinates))
+
+    def toggle_ponder(self, active):
+        if not active and self.pondering:
+            self.send_command('name')  # sending a command cancels the pondering
+
+        elif active and not self.pondering:
+            self.send_command('lz-analyze 10')
 
     def connect_to_leela_zero(self):
         if self.process is not None:

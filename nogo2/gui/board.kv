@@ -1511,9 +1511,14 @@
             id: comcar
             scroll_timeout: 0
             min_move: 0.001
-            CommentBox:
-                id: thecb
-                text: bc.board.permanent_text + bc.board.comment_pre_text + bc.board.comment_text
+            # CommentBox:
+            #     id: thecb
+            #     text: bc.board.permanent_text + bc.board.comment_pre_text + bc.board.comment_text
+            #     board: bc.board
+            LzInfoPanel:
+                lz_name: bc.board.lz_name
+                lz_version: bc.board.lz_version
+                lz_ready: bc.board.lz_ready
                 board: bc.board
             BoxLayout:
                 Widget:
@@ -2226,3 +2231,14 @@
             size_hint: (1, None)
             size: self.parent.width-10, self.texture_size[1]
             
+
+<LzInfoPanel>:
+    orientation: 'horizontal'
+    Label:
+        text: '{} {} is {}'.format(root.lz_name, root.lz_version, 'ready' if root.lz_ready else 'not ready')
+        color: 1, 1, 1, 1
+    ToggleButton:
+        text: 'ponder'
+        disabled: not root.lz_ready
+        color: 1, 1, 1, 1
+        on_state: root.board.lz_ponder(self.state == 'down')
