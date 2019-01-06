@@ -1486,6 +1486,8 @@
             size_hint: (0.25,1.0)
             on_text: bc.board.set_navmode(self,self.text)
             option_cls: Factory.MySpinnerOption
+            disabled: True
+            opacity: 0.0
 
     BoardContainer:
         id: bc
@@ -1503,6 +1505,8 @@
             size_hint_x: None
             width: sp(20)
             on_press: comcar.load_previous()
+            disabled: True
+            opacity: 0.0
         BoardCarousel:
             board: bc.board
             board_navmode: bc.board.navmode
@@ -1542,6 +1546,8 @@
             size_hint_x: None
             width: sp(20)
             on_press: comcar.load_next()
+            disabled: True
+            opacity: 0.0
 
     DividerLine:
     BoxLayout:
@@ -1561,6 +1567,8 @@
             on_release: bc.board.back_to_varbranch()
             background_color: col.dark_primary
             background_down_color: col.light_primary
+            disabled: True
+            opacity: 0.0
         VDividerLine
         PrevButton:
             id: btn_prevmove
@@ -1577,6 +1585,8 @@
             background_normal: 'media/dull_pixel.png'
             background_down: 'media/blue_press_pixel.png'
             color: col.icon
+            disabled: True
+            opacity: 0.0
         VDividerLine
         NextButton:
             board: bc.board
@@ -1591,6 +1601,8 @@
             board: root.board
             background_color: col.dark_primary
             background_down_color: col.light_primary
+            disabled: True
+            opacity: 0.0
 
 <TabletBoardView>:
     boardcontainer: bc
