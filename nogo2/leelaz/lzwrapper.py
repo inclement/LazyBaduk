@@ -2,6 +2,35 @@ import pexpect
 from functools import wraps
 import threading
 
+import kivy
+
+from os import path
+if kivy.platform == 'android':
+    leelaz_binary = 'leelaz_binary_android'
+else:
+    leelaz_binary = 'leelaz_binary'
+
+assert path.exists(leelaz_binary)
+print('Found LZ binary {}'.format(leelaz_binary))
+
+import os
+import stat
+st = os.stat(leelaz_binary)
+print('current stat is', st)
+os.chmod(leelaz_binary, st.st_mode | stat.S_IEXEC | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+os.chmod(leelaz_binary, 33261)
+
+# import subprocess
+# subprocess.check_call(path.abspath('./' + leelaz_binary))
+# subprocess.check_call('./' + leelaz_binary)
+
+os.environ['LD_LIBRARY_PATH'] = path.abspath('./')
+
+p = pexpect.spawn('./leelaz_binary_android')
+while p.isalive():
+    pass
+print('p failed, all lines are', p.readlines())
+
 def assert_connected(func):
     @wraps(func)
     def new_func(self, *args, **kwargs):
@@ -65,11 +94,15 @@ class LeelaZeroWrapper(object):
         self.command_number += 1
 
         self.process.sendline(command_string)
-        print('Sent command "{}"'.format(command_string))
+        print('Sent command "{}", currently alive {}'.format(command_string, self.process.isalive()))
 
     def read(self):
         while True:
             if not self.process.isalive():
+                print('LZ process is not alive, stopping read')
+                print('Remaining lines to read were:')
+                for line in self.process.readlines():
+                    print('  ' + line.decode('utf-8'))
                 break  # if the LZ process ended, stop reading from it
 
             line = self.process.readline()
@@ -180,8 +213,11 @@ class LeelaZeroWrapper(object):
         if self.process is not None:
             return
 
-        self.process = pexpect.spawn('./leelaz_binary --gtp --lagbuffer 0 --weights network.gz',
-                                     timeout=None)
+        print('ready to connect to LZ')
+        self.process = pexpect.spawn(
+            './{} --gtp --lagbuffer 0 --weights network.gz'.format(leelaz_binary),
+            timeout=None)
+        print('self.process is {}, alive {}'.format(self.process, self.process.isalive()))
         assert self.process.isalive()
 
         self.send_command('name')

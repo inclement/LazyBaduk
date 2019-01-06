@@ -69,7 +69,7 @@ if platform == 'android':
     from gui.lzpanel import LzInfoPanel
     from widgetcache import WidgetCache
 
-    import leelaz.lzwrapper
+    from leelaz import lzwrapper
 
 else:
     from nogo2.abstract.board import *
