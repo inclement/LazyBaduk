@@ -1023,6 +1023,8 @@ class GuiBoard(Widget):
             #print 'TAKING STONE INPUT',coords,self.navmode
             if self.input_mode == 'play':
                 if tuple(coords) not in self.stones:
+                    self.add_new_stone(coords, 'newvar')
+                    return
                     existingvars = [
                         j.get_move() for j in self.abstractboard.curnode
                     ]
@@ -1604,11 +1606,11 @@ class GuiBoard(Widget):
                         button.background_color = [0, 1, 0, 1]
                         button.text = 'Next var\n  (%d / %d)' % (curvar,
                                                                  varnum)
-        if 'varpositions' in instructions:
-            vars = instructions['varpositions']
-            for entry in vars:
-                colour, coord, number = entry
-                self.add_variation_stone(coord, colour, number)
+        # if 'varpositions' in instructions:
+        #     vars = instructions['varpositions']
+        #     for entry in vars:
+        #         colour, coord, number = entry
+        #         self.add_variation_stone(coord, colour, number)
 
         t4 = time()
 
