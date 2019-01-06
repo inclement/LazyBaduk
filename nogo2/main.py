@@ -38,6 +38,11 @@ class NogoApp(App):
     def play_stone_sound(self):
         pass
 
+    def on_pause(self):
+        # Stop LZ pondering to avoid causing problems in the background
+        self.root.ids.bc.board.lz_ponder(False)
+        return True
+
 def run(*args, **kwargs):
     NogoApp().run()
 

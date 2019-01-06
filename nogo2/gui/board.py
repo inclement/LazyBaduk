@@ -66,7 +66,7 @@ if platform == 'android':
     from abstract.board import *
     # from sgfcollections import CollectionChooserButton
     from gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
-    from gui.lzpanel import LzInfoPanel
+    from gui.lzpanel import LzInfoPanel, LzPonderingMarker
     from widgetcache import WidgetCache
 
     from leelaz import lzwrapper
@@ -75,7 +75,7 @@ else:
     from nogo2.abstract.board import *
     # from sgfcollections import CollectionChooserButton
     from nogo2.gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
-    from nogo2.gui.lzpanel import LzInfoPanel
+    from nogo2.gui.lzpanel import LzInfoPanel, LzPonderingMarker
     from nogo2.widgetcache import WidgetCache
 
     from nogo2.leelaz import lzwrapper
@@ -686,10 +686,12 @@ class GuiBoard(Widget):
     gobanpos = ListProperty((100, 100))
 
     lz_wrapper = ObjectProperty()
+    lz_status = StringProperty('loading')
     lz_ready = BooleanProperty(False)
     lz_version = StringProperty('')
     lz_name = StringProperty('')
     lz_analysis = ListProperty([])
+    lz_pondering_markers = DictProperty({})
 
     def __init__(self, *args, **kwargs):
         super(GuiBoard, self).__init__(*args, **kwargs)
@@ -709,8 +711,77 @@ class GuiBoard(Widget):
         self.lz_ready = self.lz_wrapper.is_ready()
         self.lz_analysis = self.lz_wrapper.current_analysis
 
+        if not self.lz_wrapper.process.isalive():
+            self.lz_status = 'dead'
+        elif self.lz_wrapper.pondering:
+            self.lz_status = 'pondering'
+        elif self.lz_wrapper.is_ready():
+            self.lz_status = 'ready'
+
     def lz_ponder(self, active):
         self.lz_wrapper.toggle_ponder(active)
+        if not active:
+            self.lz_analysis = []
+
+    def update_lz_pondering_markers(self):
+        for coord in list(self.lz_pondering_markers.keys()):
+            self.lz_pondering_markers[coord].pos = self.coord_to_pos(coord)
+            self.lz_pondering_markers[coord].size = self.stonesize
+
+    def on_lz_analysis(self, instance, analysis):
+        """Set up pondering markers to show the current analysis state."""
+        print('analysis', analysis)
+
+        new_coordinates = []
+        for move in analysis:
+            coordinates = move['coordinates']
+            letter = coordinates[0]
+            number = coordinates[1:]
+
+            assert ord('A') <= ord(letter) <= ord('Z')
+            horiz_coord = ord(letter) - ord('A')
+            if horiz_coord > 8:
+                horiz_coord -= 1  # correct for absence of I from coordinates
+            vert_coord = int(number)
+            vert_coord -= 1
+            move['numeric_coordinates'] = (horiz_coord, vert_coord)
+            new_coordinates.append(move['numeric_coordinates'])
+
+        # Remove no-longer-present pondering markers
+        for coords in list(self.lz_pondering_markers.keys()):
+            if coords not in new_coordinates:
+                marker = self.lz_pondering_markers.pop(coords)
+                self.remove_widget(marker)
+                # should cache the widget here
+
+        # For each new coordinate, update the existing pondering
+        # marker's details, or add a new one if necessary
+        for move in analysis:
+            coord = move['numeric_coordinates']
+            if coord in self.lz_pondering_markers:
+                marker = self.lz_pondering_markers[coord]
+            else:
+                marker = LzPonderingMarker(size=self.stonesize,
+                                            pos=self.coord_to_pos(coord))
+                self.add_widget(marker)
+                self.lz_pondering_markers[coord] = marker
+
+            marker.visits = move['visits']
+            marker.winrate = move['winrate']
+            marker.relative_visits = move['relative_visits']
+
+        print('markers are', self.lz_pondering_markers)
+
+    def lz_add_stone(self, coords, colour):
+        letter_ord = ord('A') + coords[0]
+        if letter_ord >= ord('I'):
+            letter_ord += 1
+        letter = chr(letter_ord)
+
+        coordinates = letter + str(coords[1] + 1)
+
+        self.lz_wrapper.play_move('black' if 'b' in colour else 'white', coordinates)
+        self.lz_analysis = []
 
     def on_coordinates(self, obj, val):
         print(('on_coordinates', obj, val))
@@ -1081,12 +1152,8 @@ class GuiBoard(Widget):
                 coords, self.next_to_play)
             self.follow_instructions(instructions)
             App.get_running_app().play_stone_sound()
-        #print 'add_new_stone received instructions:',instructions
 
-        # def open_sgf_dialog(self,*args,**kwargs):
-        #     popup = Popup(content=OpenSgfDialog(board=self),title='Open SGF',size_hint=(0.85,0.85))
-        #     popup.content.popup = popup
-        #     popup.open()
+        self.lz_add_stone(coords, colour)
 
     def load_sgf_from_file(self, path, filen):
         filen = filen[0]
@@ -1389,6 +1456,8 @@ class GuiBoard(Widget):
         self.update_markers()
         self.update_coordinates()
 
+        self.update_lz_pondering_markers()
+
     def on_pos(self, *args, **kwargs):
         self.on_size()
 
@@ -1399,6 +1468,8 @@ class GuiBoard(Widget):
         self.update_stones()
         self.update_playmarker()
         self.update_markers()
+
+        self.update_lz_pondering_markers()
 
     def coord_to_pos(self, coord, dotransformations=True):
         gridspacing = self.gridspacing
@@ -1600,6 +1671,10 @@ class GuiBoard(Widget):
             self.follow_instructions(instructions)
             if 'add' in instructions:
                 App.get_running_app().play_stone_sound()
+
+            for coords, colour in instructions['add']:
+                self.lz_add_stone(coords, colour)
+
         else:
             self.stop_autoplay()
             if platform == 'android':
@@ -1634,6 +1709,8 @@ class GuiBoard(Widget):
         instructions = self.abstractboard.retreat_position()
         if instructions is not None:
             self.follow_instructions(instructions)
+
+            self.lz_wrapper.undo_move()
 
     def jump_to_start(self, *args, **kwargs):
         instructions = self.abstractboard.jump_to_node(
@@ -1736,18 +1813,14 @@ class GuiBoard(Widget):
     def add_stone(self, coord=(1, 1), colour='black', *args, **kwargs):
         stonesize = self.stonesize
         t1 = time()
-        # try:
         stone = self.cache.get_stone(colour[0])
-        # except AttributeError:
-        #     print('ATTRIBUTE ERROR!')
-        #     stone = Stone()  #size=stonesize, pos=self.coord_to_pos(coord))
-        #     stone.set_colour(colour)
         stone.size = stonesize
         stone.pos = self.coord_to_pos(coord)
         t2 = time()
         if coord in self.stones:
             self.remove_stone(coord)
         self.stones[coord] = stone
+        print('self.stones', self.stones)
         t3 = time()
         self.add_widget(stone)
         t4 = time()

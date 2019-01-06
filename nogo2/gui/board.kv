@@ -1518,6 +1518,7 @@
                 lz_name: bc.board.lz_name
                 lz_version: bc.board.lz_version
                 lz_ready: bc.board.lz_ready
+                lz_status: bc.board.lz_status
                 lz_analysis: bc.board.lz_analysis
                 board: bc.board
             BoxLayout:
@@ -2235,10 +2236,25 @@
 <LzInfoPanel>:
     orientation: 'horizontal'
     Label:
-        text: '{} {} is {}\n{}'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, 'ready' if root.lz_ready else 'not ready', root.analysis_string(root.lz_analysis))
+        text: '{} {} is [b]{}[/b]'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status)
         color: 1, 1, 1, 1
+        markup: True
     ToggleButton:
         text: 'ponder'
         disabled: not root.lz_ready
         color: 1, 1, 1, 1
         on_state: root.board.lz_ponder(self.state == 'down')
+
+<LzPonderingMarker>:
+    text: '{:.1f}\n{}'.format(self.winrate, self.visits)
+    font_size: 0.35 * self.height
+    text_size: self.size
+    halign: 'center'
+    valign: 'middle'
+
+    canvas.before:
+        Color:
+            rgba: self.bg_colour
+        Ellipse:
+            size: (0.9*self.size[0], 0.9*self.size[1])
+            pos: self.pos[0] + 0.05*self.width, self.pos[1] + 0.05*self.height

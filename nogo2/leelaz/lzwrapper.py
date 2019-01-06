@@ -26,25 +26,6 @@ os.chmod(leelaz_binary, 33261)
 
 os.environ['LD_LIBRARY_PATH'] = path.abspath('./')
 
-p = pexpect.spawn('./leelaz_binary_android')
-while p.isalive():
-    pass
-print('p failed, all lines are', p.readlines())
-
-def assert_connected(func):
-    @wraps(func)
-    def new_func(self, *args, **kwargs):
-        assert self.process is not None, "Can't call func as Leela Zero connection not open"
-        assert self.process.isalive()
-        return func(self, *args, **kwargs)
-    return new_func
-
-def assert_not_pondering(func):
-    @wraps(func)
-    def new_func(self, *args, **kwargs):
-        assert not self.pondering
-        return func(self, *args, **kwargs)
-    return new_func
 
 class LeelaZeroWrapper(object):
 
@@ -74,6 +55,17 @@ class LeelaZeroWrapper(object):
 
         self.read_thread.start()
 
+    def prune_command_queue(self):
+        """Remove all but the last lz-analyze from the command queue."""
+        lz_analyze_indices = []
+        for index, command in enumerate(self.command_queue):
+            if command.startswith('lz-analyze'):
+                lz_analyze_indices.append(index)
+
+        # Remove all but the last lz-analyze
+        for index in lz_analyze_indices[:-1:-1]:
+            self.command_queue.pop(index)
+
     def send_command(self, command):
         """Add a command to the queue, it will not be sent to LZ immediately."""
         self.command_queue.append(command)
@@ -83,6 +75,8 @@ class LeelaZeroWrapper(object):
         """Pop the first command from the queue, and send it to LZ."""
         if not self.command_queue:
             return
+        self.prune_command_queue()
+
         command = self.command_queue.pop(0)
         self.send_command_to_leelaz(command)
         
@@ -148,6 +142,11 @@ class LeelaZeroWrapper(object):
 
         self.current_analysis = [self.parse_lz_analysis_move(m) for m in moves]
 
+        # Add relative values to the analysis
+        max_visits = max([move['visits'] for move in self.current_analysis])
+        for move in self.current_analysis:
+            move['relative_visits'] = move['visits'] / max_visits
+
     def parse_lz_analysis_move(self, move):
         move_info = {}
         words = move.split(' ')
@@ -202,12 +201,25 @@ class LeelaZeroWrapper(object):
             colour=colour_string,
             coordinates=coordinates))
 
+        if self.pondering:
+            self.send_command('lz-analyze 25')
+
+        self.current_analysis = []
+
+    def undo_move(self):
+        self.send_command('undo')
+
+        if self.pondering:
+            self.send_command('lz-analyze 25')
+
+        self.current_analysis = []
+
     def toggle_ponder(self, active):
         if not active and self.pondering:
             self.send_command('name')  # sending a command cancels the pondering
 
         elif active and not self.pondering:
-            self.send_command('lz-analyze 10')
+            self.send_command('lz-analyze 25')
 
     def connect_to_leela_zero(self):
         if self.process is not None:

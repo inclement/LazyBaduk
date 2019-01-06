@@ -1,18 +1,33 @@
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
 from kivy.properties import (StringProperty, BooleanProperty, ObjectProperty,
-                             ListProperty)
+                             ListProperty, NumericProperty)
+
+from colorsys import hsv_to_rgb
 
 class LzInfoPanel(BoxLayout):
     lz_name = StringProperty('')
     lz_version = StringProperty('')
     lz_ready = BooleanProperty(False)
+    lz_status = StringProperty('loading')
 
     lz_analysis = ListProperty([])
 
     board = ObjectProperty(None)
 
-    def analysis_string(self, lz_analysis):
-        return ', '.join(['{} {} {}'.format(move['coordinates'],
-                                            move['visits'],
-                                            move['winrate'])
-                          for move in lz_analysis])
+class LzPonderingMarker(Label):
+    coordinates = StringProperty('A1')
+    visits = NumericProperty(0)
+    winrate = NumericProperty(50.0)
+    relative_visits = NumericProperty(0)
+
+    bg_colour = ListProperty([1, 1, 1, 1])
+    
+    def on_relative_visits(self, instance, number):
+        r, g, b = hsv_to_rgb(number * 0.33333, 1, 1)  # hue varying from red to green
+        alpha = 0.55 + number * 0.3
+
+        r = max(r, 0.2)
+        g = max(g, 0.2)
+        b = max(b, 0.2)
+        self.bg_colour = (r, g, b, alpha)
