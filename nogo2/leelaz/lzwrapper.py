@@ -20,10 +20,6 @@ print('current stat is', st)
 os.chmod(leelaz_binary, st.st_mode | stat.S_IEXEC | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 os.chmod(leelaz_binary, 33261)
 
-# import subprocess
-# subprocess.check_call(path.abspath('./' + leelaz_binary))
-# subprocess.check_call('./' + leelaz_binary)
-
 os.environ['LD_LIBRARY_PATH'] = path.abspath('./')
 
 

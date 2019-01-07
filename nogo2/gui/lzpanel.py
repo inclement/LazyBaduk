@@ -22,6 +22,8 @@ class LzPonderingMarker(Label):
     relative_visits = NumericProperty(0)
 
     bg_colour = ListProperty([1, 1, 1, 1])
+
+    border_colour = ListProperty([0.5, 0.5, 0.5, 0.5])
     
     def on_relative_visits(self, instance, number):
         r, g, b = hsv_to_rgb(number * 0.33333, 1, 1)  # hue varying from red to green
@@ -31,3 +33,8 @@ class LzPonderingMarker(Label):
         g = max(g, 0.2)
         b = max(b, 0.2)
         self.bg_colour = (r, g, b, alpha)
+
+        if number == 1.0:
+            self.border_colour = [0.3, 0.3, 1.0, 0.75]
+        else:
+            self.border_colour = self.bg_colour

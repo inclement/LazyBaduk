@@ -720,8 +720,6 @@ class GuiBoard(Widget):
 
     def lz_ponder(self, active):
         self.lz_wrapper.toggle_ponder(active)
-        if not active:
-            self.lz_analysis = []
 
     def update_lz_pondering_markers(self):
         for coord in list(self.lz_pondering_markers.keys()):

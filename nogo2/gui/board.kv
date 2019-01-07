@@ -2267,6 +2267,11 @@
 
     canvas.before:
         Color:
+            rgba: self.border_colour
+        Line:
+            width: dp(1.05)
+            ellipse: self.x, self.y, self.width, self.height
+        Color:
             rgba: self.bg_colour
         Ellipse:
             size: (0.9*self.size[0], 0.9*self.size[1])
