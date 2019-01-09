@@ -43,6 +43,10 @@ class NogoApp(App):
         self.root.ids.bc.board.lz_ponder(False)
         return True
 
+    def on_stop(self):
+        self.root.ids.bc.board.lz_ponder(False)
+        self.root.ids.bc.board.lz_wrapper.kill()
+
 def run(*args, **kwargs):
     NogoApp().run()
 
