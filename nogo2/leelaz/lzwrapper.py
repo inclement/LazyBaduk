@@ -35,6 +35,7 @@ class LeelaZeroWrapper(object):
         self.lz_name = None
         self.lz_version = None
         self.lz_output = []  # list of output lines
+        self.lz_up_to_date = True
 
         self.command_number = 1
         self.command_queue = []
@@ -51,29 +52,27 @@ class LeelaZeroWrapper(object):
 
         self.read_thread.start()
 
-    def prune_command_queue(self):
-        """Remove all but the last lz-analyze from the command queue."""
-        lz_analyze_indices = []
-        for index, command in enumerate(self.command_queue):
-            if command.startswith('lz-analyze'):
-                lz_analyze_indices.append(index)
-
-        # Remove all but the last lz-analyze
-        for index in lz_analyze_indices[:-1:-1]:
-            self.command_queue.pop(index)
-
     def send_command(self, command):
         """Add a command to the queue, it will not be sent to LZ immediately."""
         self.command_queue.append(command)
-        self.send_command_from_queue()
+
+        # If not already waiting for something, send the new command
+        if self.lz_up_to_date:
+            self.send_command_from_queue()
 
     def send_command_from_queue(self):
         """Pop the first command from the queue, and send it to LZ."""
         if not self.command_queue:
             return
-        self.prune_command_queue()
 
-        command = self.command_queue.pop(0)
+        while True:
+            command = self.command_queue.pop(0)
+            print(command, command.startswith('lz-analyze'))
+            if command.startswith('lz-analyze') and any([c.startswith('lz-analyze') for c in self.command_queue]):
+                # skip this command, it is redundant
+                continue
+            break
+        print('command is "{}", remaining queue "{}"'.format(command, self.command_queue))
         self.send_command_to_leelaz(command)
         
     def send_command_to_leelaz(self, command):
@@ -82,6 +81,8 @@ class LeelaZeroWrapper(object):
                                                      command=command)
         self.commands_awaiting_response[self.command_number] = command
         self.command_number += 1
+
+        self.lz_up_to_date = False
 
         self.process.sendline(command_string)
         print('Sent command "{}", currently alive {}'.format(command_string, self.process.isalive()))
@@ -174,6 +175,7 @@ class LeelaZeroWrapper(object):
         
         if command.startswith('lz-analyze'):
             self.pondering = True
+            self.current_analysis = []  # clear whatever analysis was present before
         else:
             self.pondering = False
         if command == 'version':
@@ -182,6 +184,11 @@ class LeelaZeroWrapper(object):
             self.lz_name = response
         else:
             print('Nothing to do with response "{}" to command "{}"'.format(response, command))
+
+        if number == (self.command_number - 1):
+            self.lz_up_to_date = True
+        else:
+            self.lz_up_to_date = False
 
     def is_ready(self):
         """Returns True if the LZ process is alive, and has finished initialising."""

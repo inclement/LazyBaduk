@@ -688,6 +688,7 @@ class GuiBoard(Widget):
     lz_wrapper = ObjectProperty()
     lz_status = StringProperty('loading')
     lz_ready = BooleanProperty(False)
+    lz_up_to_date = BooleanProperty(True)
     lz_version = StringProperty('')
     lz_name = StringProperty('')
     lz_analysis = ListProperty([])
@@ -709,7 +710,10 @@ class GuiBoard(Widget):
         if self.lz_wrapper.lz_name is not None:
             self.lz_name = self.lz_wrapper.lz_name
         self.lz_ready = self.lz_wrapper.is_ready()
-        self.lz_analysis = self.lz_wrapper.current_analysis
+        self.lz_up_to_date = self.lz_wrapper.lz_up_to_date
+
+        if self.lz_up_to_date:
+            self.lz_analysis = self.lz_wrapper.current_analysis
 
         if not self.lz_wrapper.process.isalive():
             self.lz_status = 'dead'

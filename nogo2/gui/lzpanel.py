@@ -9,6 +9,7 @@ class LzInfoPanel(BoxLayout):
     lz_name = StringProperty('')
     lz_version = StringProperty('')
     lz_ready = BooleanProperty(False)
+    lz_up_to_date = BooleanProperty(False)
     lz_status = StringProperty('loading')
 
     lz_analysis = ListProperty([])
@@ -37,4 +38,4 @@ class LzPonderingMarker(Label):
         if number == 1.0:
             self.border_colour = [0.3, 0.3, 1.0, 0.75]
         else:
-            self.border_colour = self.bg_colour
+            self.border_colour = [1, 1, 1, 0]

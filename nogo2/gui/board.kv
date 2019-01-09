@@ -1522,6 +1522,7 @@
                 lz_name: bc.board.lz_name
                 lz_version: bc.board.lz_version
                 lz_ready: bc.board.lz_ready
+                lz_up_to_date: bc.board.lz_up_to_date
                 lz_status: bc.board.lz_status
                 lz_analysis: bc.board.lz_analysis
                 board: bc.board
@@ -2248,7 +2249,10 @@
 <LzInfoPanel>:
     orientation: 'horizontal'
     Label:
-        text: '{} {} is [b]{}[/b]'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status)
+        text: '{} {} is [b]{}[/b]\nup to date: {}'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
         color: 1, 1, 1, 1
         markup: True
     ToggleButton:
