@@ -736,18 +736,7 @@ class GuiBoard(Widget):
 
         new_coordinates = []
         for move in analysis:
-            coordinates = move['coordinates']
-            letter = coordinates[0]
-            number = coordinates[1:]
-
-            assert ord('A') <= ord(letter) <= ord('Z')
-            horiz_coord = ord(letter) - ord('A')
-            if horiz_coord > 8:
-                horiz_coord -= 1  # correct for absence of I from coordinates
-            vert_coord = int(number)
-            vert_coord -= 1
-            move['numeric_coordinates'] = (horiz_coord, vert_coord)
-            new_coordinates.append(move['numeric_coordinates'])
+            new_coordinates.append(move.numeric_coordinates)
 
         # Remove no-longer-present pondering markers
         for coords in list(self.lz_pondering_markers.keys()):
@@ -759,7 +748,7 @@ class GuiBoard(Widget):
         # For each new coordinate, update the existing pondering
         # marker's details, or add a new one if necessary
         for move in analysis:
-            coord = move['numeric_coordinates']
+            coord = move.numeric_coordinates
             if coord in self.lz_pondering_markers:
                 marker = self.lz_pondering_markers[coord]
             else:
@@ -768,9 +757,9 @@ class GuiBoard(Widget):
                 self.add_widget(marker)
                 self.lz_pondering_markers[coord] = marker
 
-            marker.visits = move['visits']
-            marker.winrate = move['winrate']
-            marker.relative_visits = move['relative_visits']
+            marker.visits = move.visits
+            marker.winrate = move.winrate
+            marker.relative_visits = move.relative_visits
 
         print('markers are', self.lz_pondering_markers)
 

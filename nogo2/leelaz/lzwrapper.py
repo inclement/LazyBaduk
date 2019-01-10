@@ -140,33 +140,12 @@ class LeelaZeroWrapper(object):
         self.current_analysis = [self.parse_lz_analysis_move(m) for m in moves]
 
         # Add relative values to the analysis
-        max_visits = max([move['visits'] for move in self.current_analysis])
+        max_visits = max([move.visits for move in self.current_analysis])
         for move in self.current_analysis:
-            move['relative_visits'] = move['visits'] / max_visits
+            move.relative_visits = move.visits / max_visits
 
     def parse_lz_analysis_move(self, move):
-        move_info = {}
-        words = move.split(' ')
-
-        word = words.pop(0)
-        assert word == 'move'
-
-        word = words.pop(0)
-        move_info['coordinates'] = word
-
-        word = words.pop(0)
-        assert word == 'visits'
-
-        word = words.pop(0)
-        move_info['visits'] = int(word)
-
-        word = words.pop(0)
-        assert word == 'winrate'
-
-        word = words.pop(0)
-        move_info['winrate'] = float(word) / 100.0
-
-        return move_info
+        return MoveAnalysis(move)
 
     def handle_command_response(self, number, response):
         command = self.commands_awaiting_response.pop(number)
@@ -239,3 +218,50 @@ class LeelaZeroWrapper(object):
 
     def kill(self):
         self.process.kill(9)
+
+
+class MoveAnalysis(dict):
+    def __init__(self, move):
+        move_info = self
+        words = move.split(' ')
+
+        word = words.pop(0)
+        assert word == 'move'
+
+        word = words.pop(0)
+        self.lz_coordinates = word
+
+        word = words.pop(0)
+        assert word == 'visits'
+
+        word = words.pop(0)
+        self.visits = int(word)
+
+        word = words.pop(0)
+        assert word == 'winrate'
+
+        word = words.pop(0)
+        self.winrate = float(word) / 100.0
+
+        self.relative_visits = 0  # must be set elsewhere
+
+    @property
+    def is_pass(self):
+        return self.lz_coordinates == 'pass'
+
+    @property
+    def numeric_coordinates(self):
+        if self.is_pass:
+            return None
+
+        letter = self.lz_coordinates[0]
+        number = self.lz_coordinates[1:]
+
+        assert ord('A') <= ord(letter) <= ord('Z')
+        horiz_coord = ord(letter) - ord('A')
+        if horiz_coord > 8:
+            horiz_coord -= 1  # correct for absence of I from coordinates
+        vert_coord = int(number)
+        vert_coord -= 1  # convert from 1-indexed to 0-indexed
+
+        return (horiz_coord, vert_coord)
