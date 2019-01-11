@@ -1501,12 +1501,12 @@
     BoxLayout:
         size_hint: (1.0,0.2)
         orientation: 'horizontal'
-        CarouselLeftArrow:
-            size_hint_x: None
-            width: sp(20)
-            on_press: comcar.load_previous()
-            disabled: True
-            opacity: 0.0
+        # CarouselLeftArrow:
+        #     size_hint_x: None
+        #     width: sp(20)
+        #     on_press: comcar.load_previous()
+        #     disabled: True
+        #     opacity: 0.0
         BoardCarousel:
             board: bc.board
             board_navmode: bc.board.navmode
@@ -1519,6 +1519,7 @@
             #     text: bc.board.permanent_text + bc.board.comment_pre_text + bc.board.comment_text
             #     board: bc.board
             LzInfoPanel:
+                id: lz_info_panel
                 lz_name: bc.board.lz_name
                 lz_version: bc.board.lz_version
                 lz_ready: bc.board.lz_ready
@@ -1543,12 +1544,12 @@
                 board: bc.board
                 board_to_play: bc.board.next_to_play
                 board_navmode: bc.board.navmode
-        CarouselRightArrow:
-            size_hint_x: None
-            width: sp(20)
-            on_press: comcar.load_next()
-            disabled: True
-            opacity: 0.0
+        # CarouselRightArrow:
+        #     size_hint_x: None
+        #     width: sp(20)
+        #     on_press: comcar.load_next()
+        #     disabled: True
+        #     opacity: 0.0
 
     DividerLine:
     BoxLayout:
@@ -1597,13 +1598,18 @@
             background_color: col.dark_primary
             background_down_color: col.light_primary
         VDividerLine
-        GameOptionsButton:
-            id: btn_options
-            board: root.board
-            background_color: col.dark_primary
-            background_down_color: col.light_primary
-            disabled: True
-            opacity: 0.0
+        # GameOptionsButton:
+        #     id: btn_options
+        #     board: root.board
+        #     background_color: col.dark_primary
+        #     background_down_color: col.light_primary
+        #     disabled: True
+        #     opacity: 0.0
+        ToggleButton:
+            text: 'ponder'
+            disabled: not root.board.lz_ready
+            color: 1, 1, 1, 1
+            on_state: root.board.lz_ponder(self.state == 'down')
 
 <TabletBoardView>:
     boardcontainer: bc
@@ -2248,19 +2254,25 @@
 
 <LzInfoPanel>:
     orientation: 'horizontal'
-    Label:
-        text: '{} {} is [b]{}[/b]\nup to date: {}'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
-        text_size: self.size
-        halign: 'center'
-        valign: 'middle'
-        color: 1, 1, 1, 1
-        markup: True
-    ToggleButton:
-        size_hint_x: 0.25
-        text: 'ponder'
-        disabled: not root.lz_ready
-        color: 1, 1, 1, 1
-        on_state: root.board.lz_ponder(self.state == 'down')
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: '{} {} is [b]{}[/b]\nup to date: {}'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            color: 1, 1, 1, 1
+            markup: True
+        LzVariationSelector:
+            size_hint_y: None
+            height: min(dp(50), max(dp(20), self.width / 12.0))
+            moves: root.lz_analysis
+    # ToggleButton:
+    #     size_hint_x: 0.25
+    #     text: 'ponder'
+    #     disabled: not root.lz_ready
+    #     color: 1, 1, 1, 1
+    #     on_state: root.board.lz_ponder(self.state == 'down')
 
 <LzPonderingMarker>:
     text: '{:.1f}\n{}'.format(self.winrate, self.visits)
@@ -2280,3 +2292,18 @@
         Ellipse:
             size: (0.9*self.size[0], 0.9*self.size[1])
             pos: self.pos[0] + 0.05*self.width, self.pos[1] + 0.05*self.height
+
+<LzVariationSelector>:
+    rows: 1
+
+<LzVariationDisplay>:
+    size_hint_x: None
+    width: 2 * self.height
+    BoxLayout:
+        pos: root.pos
+        size: root.size
+        Label:
+            text: root.coordinates
+            color: 1, 1, 1, 1
+        LzPonderingMarker:
+            move: root.move

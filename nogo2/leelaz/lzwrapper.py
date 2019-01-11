@@ -221,7 +221,7 @@ class LeelaZeroWrapper(object):
         self.process.kill(9)
 
 
-class MoveAnalysis(dict):
+class MoveAnalysis(object):
     def __init__(self, move):
         move_info = self
         words = move.split(' ')
@@ -244,6 +244,26 @@ class MoveAnalysis(dict):
         word = words.pop(0)
         self.winrate = float(word) / 100.0
 
+        word = words.pop(0)
+        assert word == 'prior'
+
+        word = words.pop(0)
+        self.prior = int(word)
+
+        word = words.pop(0)
+        assert word == 'order'
+
+        word = words.pop(0)
+        self.order = int(word)
+
+        word = words.pop(0)
+        assert word == 'pv'
+
+        move_sequence = words
+        self.move_sequence = move_sequence
+        self.numeric_coordinate_sequence = [
+            lz_coordinates_to_numeric_coordinates(lz_coords) for lz_coords in move_sequence]
+
         self.relative_visits = 0  # must be set elsewhere
 
     @property
@@ -255,14 +275,17 @@ class MoveAnalysis(dict):
         if self.is_pass:
             return None
 
-        letter = self.lz_coordinates[0]
-        number = self.lz_coordinates[1:]
+        return lz_coordinates_to_numeric_coordinates(self.lz_coordinates)
 
-        assert ord('A') <= ord(letter) <= ord('Z')
-        horiz_coord = ord(letter) - ord('A')
-        if horiz_coord > 8:
-            horiz_coord -= 1  # correct for absence of I from coordinates
-        vert_coord = int(number)
-        vert_coord -= 1  # convert from 1-indexed to 0-indexed
+def lz_coordinates_to_numeric_coordinates(coords):
+    letter = coords[0]
+    number = coords[1:]
 
-        return (horiz_coord, vert_coord)
+    assert ord('A') <= ord(letter) <= ord('Z')
+    horiz_coord = ord(letter) - ord('A')
+    if horiz_coord > 8:
+        horiz_coord -= 1  # correct for absence of I from coordinates
+    vert_coord = int(number)
+    vert_coord -= 1  # convert from 1-indexed to 0-indexed
+
+    return (horiz_coord, vert_coord)

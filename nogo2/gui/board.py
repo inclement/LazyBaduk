@@ -693,6 +693,7 @@ class GuiBoard(Widget):
     lz_name = StringProperty('')
     lz_analysis = ListProperty([])
     lz_pondering_markers = DictProperty({})
+    lz_variation_to_display = ObjectProperty(None, allownone=True)
 
     def __init__(self, *args, **kwargs):
         super(GuiBoard, self).__init__(*args, **kwargs)
@@ -751,17 +752,13 @@ class GuiBoard(Widget):
             coord = move.numeric_coordinates
             if coord in self.lz_pondering_markers:
                 marker = self.lz_pondering_markers[coord]
+                marker.move = move
             else:
                 marker = LzPonderingMarker(size=self.stonesize,
-                                            pos=self.coord_to_pos(coord))
+                                           pos=self.coord_to_pos(coord),
+                                           move=move)
                 self.add_widget(marker)
                 self.lz_pondering_markers[coord] = marker
-
-            marker.visits = move.visits
-            marker.winrate = move.winrate
-            marker.relative_visits = move.relative_visits
-
-        print('markers are', self.lz_pondering_markers)
 
     def lz_add_stone(self, coords, colour):
         letter_ord = ord('A') + coords[0]
