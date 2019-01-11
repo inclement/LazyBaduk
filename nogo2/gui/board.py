@@ -733,8 +733,6 @@ class GuiBoard(Widget):
 
     def on_lz_analysis(self, instance, analysis):
         """Set up pondering markers to show the current analysis state."""
-        print('analysis', analysis)
-
         new_coordinates = []
         for move in analysis:
             new_coordinates.append(move.numeric_coordinates)

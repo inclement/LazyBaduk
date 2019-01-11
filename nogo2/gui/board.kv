@@ -1527,6 +1527,8 @@
                 lz_status: bc.board.lz_status
                 lz_analysis: bc.board.lz_analysis
                 board: bc.board
+                on_selected_variation: bc.board.lz_variation_to_display = self.selected_variation
+                on_selected_variation: print('Displaying var: {}'.format(self.selected_variation))
             BoxLayout:
                 Widget:
                     size_hint_x: None
@@ -2253,6 +2255,7 @@
             
 
 <LzInfoPanel>:
+    selected_variation: variation_selector.selected_variation
     orientation: 'horizontal'
     BoxLayout:
         orientation: 'vertical'
@@ -2264,6 +2267,7 @@
             color: 1, 1, 1, 1
             markup: True
         LzVariationSelector:
+            id: variation_selector
             size_hint_y: None
             height: min(dp(50), max(dp(20), self.width / 12.0))
             moves: root.lz_analysis

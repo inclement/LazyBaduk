@@ -16,6 +16,8 @@ class LzInfoPanel(BoxLayout):
 
     lz_analysis = ListProperty([])
 
+    selected_variation = ObjectProperty(None, allownone=True)
+
     board = ObjectProperty(None)
 
 
@@ -57,12 +59,14 @@ class LzVariationDisplay(Button):
     coordinates = StringProperty('')
 
     def on_move(self, instance, move):
-        self.coordinates = move.lz_coordinates
+        self.coordinates = move.alphanumeric_coordinates
 
 
 class LzVariationSelector(GridLayout):
 
     moves = ListProperty([])
+    touch = ObjectProperty(None, allownone=True)
+    selected_variation = ObjectProperty(None, allownone=True)
 
     def on_moves(self, instance, moves):
         self.make_num_children(len(moves))
@@ -79,4 +83,35 @@ class LzVariationSelector(GridLayout):
         while len(self.children) < number:
             self.add_widget(LzVariationDisplay(move=self.moves[0]))
 
-        print(number, self.children)
+        self.set_selected_variation()
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.touch = touch
+            self.set_selected_variation()
+
+    def on_touch_move(self, touch):
+        if touch is self.touch:
+            self.set_selected_variation()
+
+    def on_touch_up(self, touch):
+        if touch is self.touch:
+            self.touch = None
+            self.set_selected_variation()
+
+    def set_selected_variation(self):
+        """Work out which variation is currently pressed."""
+        for child in self.children:
+            child.state = 'normal'
+
+        if self.touch is None:
+            self.selected_variation = None
+            return
+
+        child_index = int((self.touch.x - self.x) / (2 * self.height))
+
+        if child_index < len(self.children):
+            self.children[-child_index - 1].state = 'down'
+            self.selected_variation = child.move
+        else:
+            self.selected_variation = None

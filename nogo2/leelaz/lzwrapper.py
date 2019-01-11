@@ -67,12 +67,10 @@ class LeelaZeroWrapper(object):
 
         while True:
             command = self.command_queue.pop(0)
-            print(command, command.startswith('lz-analyze'))
             if command.startswith('lz-analyze') and any([c.startswith('lz-analyze') for c in self.command_queue]):
                 # skip this command, it is redundant
                 continue
             break
-        print('command is "{}", remaining queue "{}"'.format(command, self.command_queue))
         self.send_command_to_leelaz(command)
         
     def send_command_to_leelaz(self, command):
@@ -85,7 +83,6 @@ class LeelaZeroWrapper(object):
         self.lz_up_to_date = False
 
         self.process.sendline(command_string)
-        print('Sent command "{}", currently alive {}'.format(command_string, self.process.isalive()))
 
     def read(self):
         while True:
@@ -101,7 +98,7 @@ class LeelaZeroWrapper(object):
 
     def parse_line(self, line):
         """Read and interpret a line of output from the LZ process"""
-        print('Received line: "{}"'.format(line.strip()))
+        print('$ LZ> {}'.format(line.strip()))
 
         if line.startswith('info'):
             self.parse_lz_analysis(line)
@@ -150,8 +147,6 @@ class LeelaZeroWrapper(object):
     def handle_command_response(self, number, response):
         command = self.commands_awaiting_response.pop(number)
 
-        print('# command "{}" received response "{}"'.format(command, response))
-        
         if command.startswith('lz-analyze'):
             self.pondering = True
             self.current_analysis = []
@@ -277,6 +272,12 @@ class MoveAnalysis(object):
 
         return lz_coordinates_to_numeric_coordinates(self.lz_coordinates)
 
+    @property
+    def alphanumeric_coordinates(self):
+        """The alphanumeric coordinates of the move according to the lzviewer
+        reference, not LZ's own coordinate system."""
+        return numeric_coordinates_to_alphanumeric_coordinates(self.numeric_coordinates)
+
 def lz_coordinates_to_numeric_coordinates(coords):
     letter = coords[0]
     number = coords[1:]
@@ -289,3 +290,15 @@ def lz_coordinates_to_numeric_coordinates(coords):
     vert_coord -= 1  # convert from 1-indexed to 0-indexed
 
     return (horiz_coord, vert_coord)
+
+def numeric_coordinates_to_alphanumeric_coordinates(coords):
+    number_coord, letter_coord = coords
+
+    letter_ord = ord('A') + letter_coord
+    if letter_ord >= ord('I'):
+        letter_ord += 1
+    letter = chr(letter_ord)
+
+    number = number_coord + 1
+
+    return '{}{}'.format(letter, number)
