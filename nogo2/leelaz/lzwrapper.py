@@ -154,6 +154,7 @@ class LeelaZeroWrapper(object):
         
         if command.startswith('lz-analyze'):
             self.pondering = True
+            self.current_analysis = []
         else:
             self.pondering = False
         if command == 'version':
