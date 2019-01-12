@@ -22,6 +22,7 @@ os.chmod(leelaz_binary, 33261)
 
 os.environ['LD_LIBRARY_PATH'] = path.abspath('./')
 
+MOVE_TIME_S = 3
 
 class LeelaZeroWrapper(object):
 
@@ -40,6 +41,9 @@ class LeelaZeroWrapper(object):
         self.command_number = 1
         self.command_queue = []
         self.commands_awaiting_response = {}
+
+        self.lz_generating_move = False
+        self.lz_move_to_play = None
 
         self.connect_to_leela_zero()
 
@@ -65,12 +69,18 @@ class LeelaZeroWrapper(object):
         if not self.command_queue:
             return
 
+        # skip redundant analysis commands
         while True:
             command = self.command_queue.pop(0)
             if command.startswith('lz-analyze') and any([c.startswith('lz-analyze') for c in self.command_queue]):
                 # skip this command, it is redundant
                 continue
             break
+
+        # reset the lz_generating_move boolean if necessary
+        if command.startswith('genmove'):
+            self.lz_generating_move = True
+
         self.send_command_to_leelaz(command)
         
     def send_command_to_leelaz(self, command):
@@ -147,6 +157,12 @@ class LeelaZeroWrapper(object):
     def parse_lz_analysis_move(self, move):
         return MoveAnalysis(move)
 
+    def consume_move_if_available(self):
+        if self.lz_move_to_play is not None:
+            move = self.lz_move_to_play
+            self.lz_move_to_play = None
+            return move
+
     def handle_command_response(self, number, response):
         command = self.commands_awaiting_response.pop(number)
 
@@ -159,6 +175,10 @@ class LeelaZeroWrapper(object):
             self.lz_version = response
         elif command == 'name':
             self.lz_name = response
+        elif command.startswith('genmove'):
+            self.lz_move_to_play = response
+            self.lz_generating_move = False
+            self.current_analysis = []
         else:
             print('Nothing to do with response "{}" to command "{}"'.format(response, command))
 
@@ -173,9 +193,7 @@ class LeelaZeroWrapper(object):
                                                self.lz_version is not None])
 
     def play_move(self, colour, coordinates):
-        assert colour in ('black', 'white')
-
-        colour_string = {'black': 'B', 'white': 'W'}[colour]
+        colour_string = 'black' if colour.startswith('b') else 'white'
 
         self.send_command('play {colour} {coordinates}'.format(
             colour=colour_string,
@@ -193,6 +211,15 @@ class LeelaZeroWrapper(object):
             self.send_command('lz-analyze 25')
 
         self.current_analysis = []
+
+    def generate_move(self, colour):
+        colour_string = 'black' if colour.startswith('b') else 'white'
+
+        self.lz_generating_move = True
+
+        self.send_command('time_settings 0 {} 1'.format(MOVE_TIME_S))
+        self.send_command('genmove {}'.format(colour_string))
+        self.send_command('name')
 
     def toggle_ponder(self, active):
         if not active and self.pondering:
@@ -259,10 +286,12 @@ class MoveAnalysis(object):
 
         move_sequence = words
         self.move_sequence = move_sequence
-        self.numeric_coordinate_sequence = [
-            lz_coordinates_to_numeric_coordinates(lz_coords) for lz_coords in move_sequence]
-
         self.relative_visits = 0  # must be set elsewhere
+
+        
+    @property
+    def numeric_coordinate_sequence(self):
+        return [lz_coordinates_to_numeric_coordinates(lz_coords) for lz_coords in self.move_sequence]
 
     @property
     def is_pass(self):

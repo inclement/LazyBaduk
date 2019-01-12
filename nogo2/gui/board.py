@@ -694,6 +694,9 @@ class GuiBoard(Widget):
     lz_analysis = ListProperty([])
     lz_pondering_markers = DictProperty({})
     lz_variation_to_display = ObjectProperty(None, allownone=True)
+    lz_generating_move = BooleanProperty(False)
+    lz_autoplay_black = BooleanProperty(False)
+    lz_autoplay_white = BooleanProperty(False)
 
     def __init__(self, *args, **kwargs):
         super(GuiBoard, self).__init__(*args, **kwargs)
@@ -705,19 +708,42 @@ class GuiBoard(Widget):
         self.lz_wrapper = lzwrapper.LeelaZeroWrapper()
         Clock.schedule_interval(self.check_lz_status, 0.3)
 
+    def on_lz_autoplay_black(self, instance, value):
+        self.on_next_to_play(self, self.next_to_play)
+
+    def on_lz_autoplay_white(self, instance, value):
+        self.on_next_to_play(self, self.next_to_play)
+
+    def on_next_to_play(self, instance, colour):
+        print('next to play', colour)
+        if colour.startswith('b') and self.lz_autoplay_black:
+            self.lz_generate_move()
+        elif colour.startswith('w') and self.lz_autoplay_white:
+            self.lz_generate_move()
+
     def check_lz_status(self, dt):
+        # Check for a move to play first of all
+        move = self.lz_wrapper.consume_move_if_available()
+        if move is not None:
+            self.add_new_stone(lzwrapper.lz_coordinates_to_numeric_coordinates(move), 'newvar')
+
         if self.lz_wrapper.lz_version is not None:
             self.lz_version = self.lz_wrapper.lz_version
         if self.lz_wrapper.lz_name is not None:
             self.lz_name = self.lz_wrapper.lz_name
         self.lz_ready = self.lz_wrapper.is_ready()
         self.lz_up_to_date = self.lz_wrapper.lz_up_to_date
+        self.lz_generating_move = self.lz_wrapper.lz_generating_move
 
-        if self.lz_up_to_date:
+        if self.lz_generating_move:
+            self.lz_analysis = []
+        elif self.lz_up_to_date:
             self.lz_analysis = self.lz_wrapper.current_analysis
 
         if not self.lz_wrapper.process.isalive():
             self.lz_status = 'dead'
+        elif self.lz_wrapper.lz_generating_move:
+            self.lz_status = 'generating {} move'.format(self.next_to_play.upper())
         elif self.lz_wrapper.pondering:
             self.lz_status = 'pondering'
         elif self.lz_wrapper.is_ready():
@@ -725,6 +751,10 @@ class GuiBoard(Widget):
 
     def lz_ponder(self, active):
         self.lz_wrapper.toggle_ponder(active)
+
+    def lz_generate_move(self):
+        colour = self.next_to_play
+        self.lz_wrapper.generate_move(colour)
 
     def update_lz_pondering_markers(self):
         for coord in list(self.lz_pondering_markers.keys()):
@@ -884,7 +914,6 @@ class GuiBoard(Widget):
         self.start_autoplay(message=False)
 
     def stop_autoplay(self, *args, **kwargs):
-        print('stopping autoplay')
         self.permanent_text = ''
         try:
             Clock.unschedule(self.advance_one_move)
@@ -1038,9 +1067,9 @@ class GuiBoard(Widget):
     def take_stone_input(self, coords):
         coords = tuple(coords)
         if self.navmode in ['Play', 'Edit']:
-            #print 'TAKING STONE INPUT',coords,self.navmode
             if self.input_mode == 'play':
                 if tuple(coords) not in self.stones:
+                    self.lz_add_stone(coords, self.next_to_play)
                     self.add_new_stone(coords, 'newvar')
                     return
                     existingvars = [
@@ -1172,8 +1201,6 @@ class GuiBoard(Widget):
                 coords, self.next_to_play)
             self.follow_instructions(instructions)
             App.get_running_app().play_stone_sound()
-
-        self.lz_add_stone(coords, colour)
 
     def load_sgf_from_file(self, path, filen):
         filen = filen[0]
@@ -1564,8 +1591,7 @@ class GuiBoard(Widget):
 
     # Stone methods
     def follow_instructions(self, instructions, *args, **kwargs):
-        #print 'self.display_markers is',self.display_markers
-        print(('### instructions are', instructions))
+        # print(('### instructions are', instructions))
         if instructions is None:
             print('No instructions.')
             return
@@ -1671,7 +1697,6 @@ class GuiBoard(Widget):
         self.brank = brank
         self.bname = bname
         result = self.abstractboard.get_result()
-        print(('result is', result))
         if len(result) > 0:
             if result[0] in ['B', 'b']:
                 self.bname = embolden(self.bname)
@@ -1840,7 +1865,6 @@ class GuiBoard(Widget):
         if coord in self.stones:
             self.remove_stone(coord)
         self.stones[coord] = stone
-        print('self.stones', self.stones)
         t3 = time()
         self.add_widget(stone)
         t4 = time()
@@ -1996,8 +2020,8 @@ class BoardContainer(StencilView):
                     else:
                         self.board.retreat_one_move()
             elif self.board.navmode == 'Guess':
-                print(('Touch down at', self.board.pos_to_coord(touch.pos)))
-                print(('next to play is', self.board.next_to_play))
+                # print(('Touch down at', self.board.pos_to_coord(touch.pos)))
+                # print(('next to play is', self.board.next_to_play))
                 marker = MakeMoveMarker(
                     coord=self.board.pos_to_coord(touch.pos),
                     board=self.board,
@@ -2007,8 +2031,8 @@ class BoardContainer(StencilView):
                 self.makemovemarker = marker
                 self.add_widget(marker)
             elif self.board.navmode in ['Play', 'Edit']:
-                print(('Touch down at', self.board.pos_to_coord(touch.pos)))
-                print(('next to play is', self.board.next_to_play))
+                # print(('Touch down at', self.board.pos_to_coord(touch.pos)))
+                # print(('next to play is', self.board.next_to_play))
                 self.make_move_marker_at(touch)
             elif self.board.navmode == 'Score':
                 coord = self.board.pos_to_coord(touch.pos)

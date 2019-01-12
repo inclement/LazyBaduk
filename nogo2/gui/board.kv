@@ -1529,23 +1529,23 @@
                 board: bc.board
                 on_selected_variation: bc.board.lz_variation_to_display = self.selected_variation
                 on_selected_variation: print('Displaying var: {}'.format(self.selected_variation))
-            BoxLayout:
-                Widget:
-                    size_hint_x: None
-                    width: (10,'sp')
-                GameSlider:
-                    min: 0
-                    max: bc.board.current_branch_length - 1
-                    value: bc.board.current_node_index
-                    on_value: bc.board.jump_to_node_by_number(int(self.value))
-                Widget:
-                    size_hint_x: None
-                    width: (10,'sp')
-            EditPanel:
-                id: boardedit
-                board: bc.board
-                board_to_play: bc.board.next_to_play
-                board_navmode: bc.board.navmode
+            # BoxLayout:
+            #     Widget:
+            #         size_hint_x: None
+            #         width: (10,'sp')
+            #     GameSlider:
+            #         min: 0
+            #         max: bc.board.current_branch_length - 1
+            #         value: bc.board.current_node_index
+            #         on_value: bc.board.jump_to_node_by_number(int(self.value))
+            #     Widget:
+            #         size_hint_x: None
+            #         width: (10,'sp')
+            # EditPanel:
+            #     id: boardedit
+            #     board: bc.board
+            #     board_to_play: bc.board.next_to_play
+            #     board_navmode: bc.board.navmode
         # CarouselRightArrow:
         #     size_hint_x: None
         #     width: sp(20)
@@ -2260,24 +2260,35 @@
     orientation: 'horizontal'
     BoxLayout:
         orientation: 'vertical'
-        Label:
-            text: '{} {} is [b]{}[/b]\nup to date: {}'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
-            text_size: self.size
-            halign: 'center'
-            valign: 'middle'
-            color: 1, 1, 1, 1
-            markup: True
+        BoxLayout:
+            orientation: 'horizontal'
+            Label:
+                text: '{} {} is [b]{}[/b]\nup to date: {}'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
+                text_size: self.size
+                halign: 'center'
+                valign: 'middle'
+                color: 1, 1, 1, 1
+                markup: True
+            BoxLayout:
+                size_hint_x: 0.3
+                orientation: 'vertical'
+                Button:
+                    text: 'play now'
+                    color: 1, 1, 1, 1
+                    on_release: root.board.lz_generate_move()
+                BoxLayout:
+                    orientation: 'horizontal'
+                    ToggleButton:
+                        text: 'play B'
+                        on_release: root.board.lz_autoplay_black = (self.state == 'down')
+                    ToggleButton:
+                        text: 'play W'
+                        on_release: root.board.lz_autoplay_white = (self.state == 'down')
         LzVariationSelector:
             id: variation_selector
             size_hint_y: None
             height: min(dp(50), max(dp(20), self.width / 12.0))
             moves: root.lz_analysis
-    # ToggleButton:
-    #     size_hint_x: 0.25
-    #     text: 'ponder'
-    #     disabled: not root.lz_ready
-    #     color: 1, 1, 1, 1
-    #     on_state: root.board.lz_ponder(self.state == 'down')
 
 <LzPonderingMarker>:
     text: '{:.1f}\n{}'.format(self.winrate, self.visits)

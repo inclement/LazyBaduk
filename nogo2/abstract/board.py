@@ -157,17 +157,13 @@ def get_gameinfo_from_file(filen):
 
 
 def set_gameinfo_in_sgf(info, game):
-    print('got to set_gameinfo_in_sgf', info)
     root = game.get_root()
-    print('root is', root, root.properties())
     if 'bname' in info:
         bname = info['bname']
-        print('new bname will be')
         root.set('PB', bname)
     if 'wname' in info:
         wname = info['wname']
         root.set('PW', wname)
-    print('did wname, bname')
     if 'annotate' in info:
         annotate = info['annotate']
         root.set('AN', annotate)
@@ -177,7 +173,6 @@ def set_gameinfo_in_sgf(info, game):
     if 'wrank' in info:
         wrank = info['wrank']
         root.set('WR', wrank)
-    print('did wrank, brank')
     if 'bteam' in info:
         bteam = info['bteam']
         root.set('BT', bteam)
@@ -321,7 +316,6 @@ def get_markers_from_node(node):
 
 
 def get_setupstones_from_node(node):
-    print('Getting setupstones!')
     black, white, empty = node.get_setup_stones()
     stones = []
     for stone in black:
@@ -330,7 +324,6 @@ def get_setupstones_from_node(node):
         stones.append((stone, 'w'))
     for stone in empty:
         stones.append((stone, 'e'))
-    print('setup stones returned:', stones)
     return stones
 
 
@@ -438,7 +431,6 @@ def get_nonstone_from_node(node):
     instructions.update(node_markers)
 
     variations = check_variations_in_node(node)
-    print('variations are', variations)
     if variations[1] > 1:
         instructions['variations'] = variations
 
