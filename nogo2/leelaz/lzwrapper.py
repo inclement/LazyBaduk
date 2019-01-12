@@ -137,7 +137,7 @@ class LeelaZeroWrapper(object):
         self.current_analysis = [self.parse_lz_analysis_move(m) for m in moves]
 
         # Remove passes from the move list, as they aren't handled properly by the gui yet
-        self.current_analysis = [m for m in self.current_analysis if not m.is_pass()]
+        self.current_analysis = [m for m in self.current_analysis if not m.is_pass]
 
         # Add relative values to the analysis
         max_visits = max([move.visits for move in self.current_analysis])
@@ -207,7 +207,7 @@ class LeelaZeroWrapper(object):
 
         print('ready to connect to LZ')
         self.process = pexpect.spawn(
-            './{} --gtp --lagbuffer 0 --weights network.gz'.format(leelaz_binary),
+            './{} --gtp --lagbuffer 0 --weights network.gz --resignpct 0'.format(leelaz_binary),
             timeout=None)
         print('self.process is {}, alive {}'.format(self.process, self.process.isalive()))
         assert self.process.isalive()
