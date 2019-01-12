@@ -136,6 +136,9 @@ class LeelaZeroWrapper(object):
 
         self.current_analysis = [self.parse_lz_analysis_move(m) for m in moves]
 
+        # Remove passes from the move list, as they aren't handled properly by the gui yet
+        self.current_analysis = [m for m in self.current_analysis if not m.is_pass()]
+
         # Add relative values to the analysis
         max_visits = max([move.visits for move in self.current_analysis])
         for move in self.current_analysis:
