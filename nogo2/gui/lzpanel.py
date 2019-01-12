@@ -111,7 +111,8 @@ class LzVariationSelector(GridLayout):
         child_index = int((self.touch.x - self.x) / (2 * self.height))
 
         if child_index < len(self.children):
-            self.children[-child_index - 1].state = 'down'
+            child = self.children[-child_index - 1]
+            child.state = 'down'
             self.selected_variation = child.move
         else:
             self.selected_variation = None

@@ -167,11 +167,11 @@ class VarStone(Widget):
 
     def set_colour(self, colour):
         if colour in ['black', 'b']:
-            self.colour = [0, 0, 0, 0.2]
-            self.textcolour = [1, 1, 1, 0.6]
+            self.colour = [0, 0, 0, 1]
+            self.textcolour = [1, 1, 1, 1]
         elif colour in ['white', 'w']:
-            self.colour = [1, 1, 1, 0.2]
-            self.textcolour = [0, 0, 0, 0.6]
+            self.colour = [1, 1, 1, 1]
+            self.textcolour = [0, 0, 0, 1]
         else:
             print('colour doesn\'t exist:', colour)
             # should raise exception

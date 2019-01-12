@@ -733,6 +733,11 @@ class GuiBoard(Widget):
 
     def on_lz_analysis(self, instance, analysis):
         """Set up pondering markers to show the current analysis state."""
+
+        # Don't display analysis if currently displaying a variation
+        if self.lz_variation_to_display is not None:
+            analysis = []
+
         new_coordinates = []
         for move in analysis:
             new_coordinates.append(move.numeric_coordinates)
@@ -768,6 +773,33 @@ class GuiBoard(Widget):
 
         self.lz_wrapper.play_move('black' if 'b' in colour else 'white', coordinates)
         self.lz_analysis = []
+
+    def on_lz_variation_to_display(self, instance, move):
+        """Add stones to show the variation"""
+
+        self.on_lz_analysis(self, self.lz_analysis)
+
+        self.clear_variation_stones()
+
+        if move is None:
+            return
+
+        print('===')
+        for analysis_move in self.lz_analysis:
+            print(analysis_move.numeric_coordinate_sequence)
+        print('===')
+        print('and', move.lz_coordinates, move.numeric_coordinate_sequence)
+        
+        colour = self.next_to_play
+        coords = move.numeric_coordinate_sequence
+        for move_number, coord in enumerate(coords):
+            move_number += 1
+            self.add_variation_stone(
+                coord,
+                colour=colour,
+                num=move_number)
+            print('added {} with colour {}'.format(move_number, colour))
+            colour = 'w' if colour.startswith('b') else 'b'
 
     def on_coordinates(self, obj, val):
         print(('on_coordinates', obj, val))

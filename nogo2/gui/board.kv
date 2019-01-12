@@ -2084,6 +2084,7 @@
         pos: self.parent.pos
         text: self.parent.text
         color: self.parent.textcolour
+        font_size: 0.45 * self.height
 
 
 <GuiBoard>:
@@ -2289,7 +2290,7 @@
         Color:
             rgba: self.border_colour
         Line:
-            width: dp(1.05)
+            width: self.width / 25
             ellipse: self.x, self.y, self.width, self.height
         Color:
             rgba: self.bg_colour
