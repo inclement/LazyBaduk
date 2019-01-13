@@ -716,9 +716,9 @@ class GuiBoard(Widget):
 
     def on_next_to_play(self, instance, colour):
         print('next to play', colour)
-        if colour.startswith('b') and self.lz_autoplay_black:
+        if colour.startswith('b') and self.lz_autoplay_black and not self.lz_generating_move:
             self.lz_generate_move()
-        elif colour.startswith('w') and self.lz_autoplay_white:
+        elif colour.startswith('w') and self.lz_autoplay_white and not self.lz_generating_move:
             self.lz_generate_move()
 
     def check_lz_status(self, dt):
@@ -755,6 +755,9 @@ class GuiBoard(Widget):
     def lz_generate_move(self):
         colour = self.next_to_play
         self.lz_wrapper.generate_move(colour)
+
+        # pre-emptively set that LZ is generating a move, to make prevent interfering inputs
+        self.lz_generating_move = True
 
     def update_lz_pondering_markers(self):
         for coord in list(self.lz_pondering_markers.keys()):
