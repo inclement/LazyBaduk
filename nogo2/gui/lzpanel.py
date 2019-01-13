@@ -1,11 +1,12 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.button import Button
 from kivy.properties import (StringProperty, BooleanProperty, ObjectProperty,
                              ListProperty, NumericProperty)
 
 from colorsys import hsv_to_rgb
+
+from gui.widgets import ColouredButton
 
 class LzInfoPanel(BoxLayout):
     lz_name = StringProperty('')
@@ -54,7 +55,7 @@ class LzPonderingMarker(Label):
             self.border_colour = [1, 1, 1, 0]
 
 
-class LzVariationDisplay(Button):
+class LzVariationDisplay(ColouredButton):
     move = ObjectProperty(None)
 
     coordinates = StringProperty('')

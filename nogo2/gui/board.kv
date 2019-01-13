@@ -1053,20 +1053,24 @@
             size: (0.7*self.height,0.7*self.height)
 
 
-<NextButton@Button>:
+<NextButton@ColouredButton>:
+    radius: dp(5)
+    padding: dp(2)
     canvas:
         Color:
-            rgb: (0.9,0.9,0.9)
+            rgb: (0.9, 0.9, 0.9)
         Line:
             points: [self.x + 0.5*self.width - 5, self.y + 0.5*self.height - 10, self.x + 0.5*self.width + 5, self.y + 0.5*self.height, self.x + 0.5*self.width - 5, self.y + 0.5*self.height + 10]
             width: 2
             cap: 'square'
             joint: 'miter'
 
-<PrevButton@Button>:
+<PrevButton@ColouredButton>:
+    radius: dp(5)
+    padding: dp(2)
     canvas:
         Color:
-            rgb: col.icon
+            rgb: (0.9, 0.9, 0.9)
         Line:
             points: [self.x + 0.5*self.width + 5, self.y + 0.5*self.height - 10, self.x + 0.5*self.width - 5, self.y + 0.5*self.height, self.x + 0.5*self.width + 5, self.y + 0.5*self.height + 10]
             width: 2
@@ -1577,8 +1581,7 @@
         VDividerLine
         PrevButton:
             id: btn_prevmove
-            on_press: bc.board.time_start();bc.board.retreat_one_move()
-            on_release: bc.board.time_stop()
+            on_release: bc.board.retreat_one_move()
             background_color: col.dark_primary
             background_down_color: col.light_primary
             disabled: root.board.lz_generating_move
@@ -1597,8 +1600,7 @@
         NextButton:
             board: bc.board
             id: btn_nextmove
-            on_press: bc.board.time_start();bc.board.advance_one_move()
-            on_release: bc.board.time_stop()
+            on_release: bc.board.advance_one_move()
             background_color: col.dark_primary
             background_down_color: col.light_primary
             disabled: root.board.lz_generating_move
@@ -1610,169 +1612,15 @@
         #     background_down_color: col.light_primary
         #     disabled: True
         #     opacity: 0.0
-        ToggleButton:
+        ColouredToggleButton:
             text: 'ponder'
             disabled: (not root.board.lz_ready) or root.board.lz_generating_move
-            color: 1, 1, 1, 1
+            color: (0, 0, 0, 1) if self.state == 'normal' else (1, 1, 1, 1)
             on_state: root.board.lz_ponder(self.state == 'down')
             on_disabled: self.state = 'normal' if root.board.lz_generating_move else self.state
+            radius: dp(5)
+            padding: dp(2)
 
-<TabletBoardView>:
-    boardcontainer: bc
-    board: bc.board
-    spinner: navspinner
-
-    orientation: 'vertical'
-
-    BoxLayout:
-        orientation: 'horizontal'
-        Widget:
-            size_hint_x: None
-            width: sp(6)
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: 0.5
-            CommentBox:
-                id: thecb
-                padding: (0,sp(6))
-                text: bc.board.permanent_text + bc.board.comment_pre_text + bc.board.comment_text
-                board: bc.board
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: None
-                height: (100,'sp')
-                CarouselLeftArrow:
-                    size_hint_x: None
-                    width: (20,'sp')
-                    on_press: comcar.load_previous()
-                BoardCarousel:
-                    board: bc.board
-                    board_navmode: bc.board.navmode
-                    loop: True
-                    id: comcar
-                    scroll_timeout: 0
-                    min_move: 0.001
-                    BoxLayout:
-                        Widget:
-                            size_hint_x: None
-                            width: (10,'sp')
-                        GameSlider:
-                            min: 0
-                            max: bc.board.current_branch_length - 1
-                            value: bc.board.current_node_index
-                            on_value: bc.board.jump_to_node_by_number(int(self.value))
-                        Widget:
-                            size_hint_x: None
-                            width: (10,'sp')
-                    EditPanel:
-                        id: boardedit
-                        board: bc.board
-                        board_to_play: bc.board.next_to_play
-                        board_navmode: bc.board.navmode
-                CarouselRightArrow:
-                    size_hint_x: None
-                    width: (20,'sp')
-                    on_press: comcar.load_next()
-
-        VDividerLine:
-            size_hint_x: None
-            width: (2,'sp')
-            vgap: 0
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: None if Window.width > 1.2*Window.height else 0.6
-            width: Window.height - sp(30)
-            Widget:
-                size_hint_y: None
-                height: (5,'sp')
-
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint: (1.,None)
-                height: (30,'sp')
-
-                Widget:
-                    size_hint_x: None
-                    width: (5,'sp')
-                TabletPlayerDetails:
-                    id: pd
-                    board: bc.board
-
-                    wtext: bc.board.wname
-                    wrank: bc.board.wrank
-                    btext: bc.board.bname
-                    brank: bc.board.brank
-                    next_to_play: bc.board.next_to_play
-                    on_next_to_play: self.set_to_play(self.next_to_play)
-                Widget:
-                    size_hint_x: None
-                    width: (5,'sp')
-
-            Widget:
-                size_hint_y: None
-                height: (2,'sp')
-            DividerLine:
-                height: (5,'sp')
-
-            BoardContainer:
-                id: bc
-                size_hint: (1.,0.80)
-
-                uielements: {'varbutton': [btn_nextvar]}
-        Widget:
-            size_hint_x: None
-            width: 4
-        VDividerLine:
-            vgap: 0
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: None
-            width: (72,'dp')
-            Spinner:
-                id: navspinner
-                text: 'Navigate'
-                values: ['Navigate','Play','Edit','Score','Guess', 'Pattern\nsearch']
-                on_text: bc.board.set_navmode(self,self.text)
-                option_cls: Factory.MySpinnerOption
-            DividerLine:
-                linewidth: 1
-            GameOptionsButton:
-                id: btn_options
-                board: root.board
-                background_normal: 'media/black_pixel.png'
-                background_down: 'media/blue_press_pixel.png'
-            DividerLine:
-                linewidth: 1
-            VarBranchButton:
-                id: btn_varbranch
-                on_release: bc.board.back_to_varbranch()
-            DividerLine:
-                linewidth: 1
-            Button:
-                id: btn_nextvar
-                text: 'Next var\n (1 / 1)'
-                on_press: bc.board.time_start();bc.board.next_variation()
-                on_release: bc.board.time_stop()
-                background_normal: 'media/dull_pixel.png'
-                background_down: 'media/blue_press_pixel.png'
-            DividerLine:
-                linewidth: 1
-            PrevButton:
-                id: btn_prevmove
-                on_press: bc.board.time_start();bc.board.retreat_one_move()
-                on_release: bc.board.time_stop()
-                background_normal: 'media/black_pixel.png'
-                background_down: 'media/blue_press_pixel.png'
-            DividerLine:
-                linewidth: 1
-            NextButton:
-                board: bc.board
-                id: btn_nextmove
-                on_press: bc.board.time_start();bc.board.advance_one_move()
-                on_release: bc.board.time_stop()
-                background_normal: 'media/black_pixel.png'
-                background_down: 'media/blue_press_pixel.png'
-                
         
 <GameOptions>:
     dismiss_on_select: True
@@ -2276,18 +2124,27 @@
             BoxLayout:
                 size_hint_x: 0.3
                 orientation: 'vertical'
-                Button:
+                ColouredButton:
+                    radius: dp(5)
+                    padding: dp(2)
                     text: 'play now'
-                    color: 1, 1, 1, 1
                     on_release: root.board.lz_generate_move()
                     disabled: root.lz_generating_move
                 BoxLayout:
                     orientation: 'horizontal'
-                    ToggleButton:
+                    ColouredToggleButton:
+                        radius: dp(5)
+                        padding: dp(2)
                         text: 'play B'
+                        color: (1, 1, 1, 1)
+                        background_normal: (0, 0, 0, 1)
                         on_release: root.board.lz_autoplay_black = (self.state == 'down')
-                    ToggleButton:
+                    ColouredToggleButton:
+                        radius: dp(5)
+                        padding: dp(2)
                         text: 'play W'
+                        color: (0, 0, 0, 1) if self.state == 'normal' else (1, 1, 1, 1)
+                        background_normal: (1, 1, 1, 1)
                         on_release: root.board.lz_autoplay_white = (self.state == 'down')
         LzVariationSelector:
             id: variation_selector
@@ -2320,6 +2177,8 @@
 <LzVariationDisplay>:
     size_hint_x: None
     width: 2 * self.height
+    radius: dp(5)
+    padding: dp(2)
     BoxLayout:
         pos: root.pos
         size: root.size
@@ -2328,3 +2187,36 @@
             color: 1, 1, 1, 1
         LzPonderingMarker:
             move: root.move
+
+<ColouredButton>:
+    background_normal: col.button_up
+    background_down: col.button_down
+    canvas.before:
+        Color:
+            rgba: self.background_normal if self.state == 'normal' else self.background_down
+        RoundedRectangle:
+            pos: self.x + self.padding, self.y + self.padding
+            size: self.width - 2*self.padding, self.height - 2*self.padding
+            radius: [(self.radius, self.radius) for _ in range(4)]
+
+<ColouredToggleButton>:
+    background_normal: col.button_up
+    background_down: col.button_down
+    canvas.before:
+        Color:
+            rgba: self.background_normal if self.state == 'normal' else self.background_down
+        RoundedRectangle:
+            pos: self.x + self.padding, self.y + self.padding
+            size: self.width - 2*self.padding, self.height - 2*self.padding
+            radius: [(self.radius, self.radius) for _ in range(4)]
+
+<ColouredButtonContainer>:
+    background_normal: col.button_up
+    background_down: col.button_down
+    canvas.before:
+        Color:
+            rgba: self.background_normal if self.state == 'normal' else self.background_down
+        RoundedRectangle:
+            pos: self.x + self.coloured_button_padding, self.y + self.coloured_button_padding
+            size: self.width - 2*self.coloured_button_padding, self.height - 2*self.coloured_button_padding
+            radius: [(self.radius, self.radius) for _ in range(4)]

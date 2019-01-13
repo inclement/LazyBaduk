@@ -67,6 +67,7 @@ if platform == 'android':
     # from sgfcollections import CollectionChooserButton
     from gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
     from gui.lzpanel import LzInfoPanel, LzPonderingMarker
+    import gui.widgets
     from widgetcache import WidgetCache
 
     from leelaz import lzwrapper
@@ -76,6 +77,7 @@ else:
     # from sgfcollections import CollectionChooserButton
     from nogo2.gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
     from nogo2.gui.lzpanel import LzInfoPanel, LzPonderingMarker
+    import nogo2.gui.widgets
     from nogo2.widgetcache import WidgetCache
 
     from nogo2.leelaz import lzwrapper
@@ -1724,9 +1726,9 @@ class GuiBoard(Widget):
 
         else:
             self.stop_autoplay()
-            if platform == 'android':
-                import android
-                android.vibrate(0.1)
+            # if platform == 'android':
+            #     import android
+            #     android.vibrate(0.1)
         t3 = time()
         # for i in range(500000):
         #     i += 1
