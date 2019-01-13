@@ -1054,7 +1054,6 @@
 
 
 <NextButton@ColouredButton>:
-    radius: dp(5)
     padding: dp(2)
     canvas:
         Color:
@@ -1066,7 +1065,6 @@
             joint: 'miter'
 
 <PrevButton@ColouredButton>:
-    radius: dp(5)
     padding: dp(2)
     canvas:
         Color:
@@ -1615,10 +1613,8 @@
         ColouredToggleButton:
             text: 'ponder'
             disabled: (not root.board.lz_ready) or root.board.lz_generating_move
-            color: (0, 0, 0, 1) if self.state == 'normal' else (1, 1, 1, 1)
             on_state: root.board.lz_ponder(self.state == 'down')
             on_disabled: self.state = 'normal' if root.board.lz_generating_move else self.state
-            radius: dp(5)
             padding: dp(2)
 
         
@@ -2110,6 +2106,12 @@
 <LzInfoPanel>:
     selected_variation: variation_selector.selected_variation
     orientation: 'horizontal'
+    canvas.before:
+        Color:
+            rgba: col.dark_primary
+        Rectangle:
+            pos: self.pos
+            size: self.size
     BoxLayout:
         orientation: 'vertical'
         BoxLayout:
@@ -2125,7 +2127,6 @@
                 size_hint_x: 0.3
                 orientation: 'vertical'
                 ColouredButton:
-                    radius: dp(5)
                     padding: dp(2)
                     text: 'play now'
                     on_release: root.board.lz_generate_move()
@@ -2133,14 +2134,12 @@
                 BoxLayout:
                     orientation: 'horizontal'
                     ColouredToggleButton:
-                        radius: dp(5)
                         padding: dp(2)
                         text: 'play B'
                         color: (1, 1, 1, 1)
                         background_normal: (0, 0, 0, 1)
                         on_release: root.board.lz_autoplay_black = (self.state == 'down')
                     ColouredToggleButton:
-                        radius: dp(5)
                         padding: dp(2)
                         text: 'play W'
                         color: (0, 0, 0, 1) if self.state == 'normal' else (1, 1, 1, 1)
@@ -2177,8 +2176,7 @@
 <LzVariationDisplay>:
     size_hint_x: None
     width: 2 * self.height
-    radius: dp(5)
-    padding: dp(2)
+    padding: dp(1)
     BoxLayout:
         pos: root.pos
         size: root.size
@@ -2191,6 +2189,8 @@
 <ColouredButton>:
     background_normal: col.button_up
     background_down: col.button_down
+    radius: col.button_radius
+    color: 1, 1, 1, 1
     canvas.before:
         Color:
             rgba: self.background_normal if self.state == 'normal' else self.background_down
@@ -2202,6 +2202,8 @@
 <ColouredToggleButton>:
     background_normal: col.button_up
     background_down: col.button_down
+    radius: col.button_radius
+    color: 1, 1, 1, 1
     canvas.before:
         Color:
             rgba: self.background_normal if self.state == 'normal' else self.background_down
@@ -2213,6 +2215,8 @@
 <ColouredButtonContainer>:
     background_normal: col.button_up
     background_down: col.button_down
+    radius: col.button_radius
+    color: 1, 1, 1, 1
     canvas.before:
         Color:
             rgba: self.background_normal if self.state == 'normal' else self.background_down
