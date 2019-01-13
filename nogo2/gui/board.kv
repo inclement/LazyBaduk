@@ -1526,6 +1526,7 @@
                 lz_up_to_date: bc.board.lz_up_to_date
                 lz_status: bc.board.lz_status
                 lz_analysis: bc.board.lz_analysis
+                lz_generating_move: bc.board.lz_generating_move
                 board: bc.board
                 on_selected_variation: bc.board.lz_variation_to_display = self.selected_variation
                 on_selected_variation: print('Displaying var: {}'.format(self.selected_variation))
@@ -1580,6 +1581,7 @@
             on_release: bc.board.time_stop()
             background_color: col.dark_primary
             background_down_color: col.light_primary
+            disabled: root.board.lz_generating_move
         VDividerLine
         Button:
             id: btn_nextvar
@@ -1599,6 +1601,7 @@
             on_release: bc.board.time_stop()
             background_color: col.dark_primary
             background_down_color: col.light_primary
+            disabled: root.board.lz_generating_move
         VDividerLine
         # GameOptionsButton:
         #     id: btn_options
@@ -1609,9 +1612,10 @@
         #     opacity: 0.0
         ToggleButton:
             text: 'ponder'
-            disabled: not root.board.lz_ready
+            disabled: (not root.board.lz_ready) or root.board.lz_generating_move
             color: 1, 1, 1, 1
             on_state: root.board.lz_ponder(self.state == 'down')
+            on_disabled: self.state = 'normal' if root.board.lz_generating_move else self.state
 
 <TabletBoardView>:
     boardcontainer: bc
@@ -2276,6 +2280,7 @@
                     text: 'play now'
                     color: 1, 1, 1, 1
                     on_release: root.board.lz_generate_move()
+                    disabled: root.lz_generating_move
                 BoxLayout:
                     orientation: 'horizontal'
                     ToggleButton:

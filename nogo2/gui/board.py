@@ -828,7 +828,6 @@ class GuiBoard(Widget):
                 coord,
                 colour=colour,
                 num=move_number)
-            print('added {} with colour {}'.format(move_number, colour))
             colour = 'w' if colour.startswith('b') else 'b'
 
     def on_coordinates(self, obj, val):
@@ -2005,6 +2004,10 @@ class BoardContainer(StencilView):
         self.set_boardpos()
 
     def on_touch_down(self, touch):
+        if self.board.lz_generating_move:
+            # should also do something in the gui to indicate the failure
+            return
+
         if self.collide_point(*touch.pos):
             self.board.stop_autoplay()
             if self.board.navmode == 'Navigate':

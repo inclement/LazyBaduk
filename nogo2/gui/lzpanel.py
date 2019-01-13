@@ -13,6 +13,7 @@ class LzInfoPanel(BoxLayout):
     lz_ready = BooleanProperty(False)
     lz_up_to_date = BooleanProperty(False)
     lz_status = StringProperty('loading')
+    lz_generating_move = BooleanProperty(False)
 
     lz_analysis = ListProperty([])
 
