@@ -20,7 +20,7 @@ options = {'apk': {'window': None,
                    'icon': 'build_media/icon.png',
                    }}
 setup(
-    name='LZ Viewer',
+    name='Lazy Baduk',
     version='0.2',
     description='An SGF editor and Leela Zero analysis tool',
     author='Alexander Taylor',
