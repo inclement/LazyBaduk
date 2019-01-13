@@ -21,7 +21,7 @@ options = {'apk': {'window': None,
                    }}
 setup(
     name='LZ Viewer',
-    version='0.1',
+    version='0.2',
     description='An SGF editor and Leela Zero analysis tool',
     author='Alexander Taylor',
     author_email='alexander@inclem.net',
