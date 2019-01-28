@@ -1,8 +1,11 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.widget import Widget
 from kivy.properties import (StringProperty, BooleanProperty, ObjectProperty,
                              ListProperty, NumericProperty)
+from kivy.graphics.vertex_instructions import Ellipse
+from kivy.metrics import dp
 
 from colorsys import hsv_to_rgb
 
@@ -19,6 +22,9 @@ class LzInfoPanel(BoxLayout):
     lz_analysis = ListProperty([])
 
     selected_variation = ObjectProperty(None, allownone=True)
+
+    current_node_index = NumericProperty(0)
+    current_branch_length = NumericProperty(0)
 
     board = ObjectProperty(None)
 
@@ -118,3 +124,75 @@ class LzVariationSelector(GridLayout):
             self.selected_variation = child.move
         else:
             self.selected_variation = None
+
+
+class LzWinrateGraph(Widget):
+    
+    current_node_index = NumericProperty(0)
+    current_branch_length = NumericProperty(5)
+
+    current_touch = ObjectProperty(None, allownone=True)
+
+    xs = ListProperty([])
+    circles = ListProperty([])
+    current_node_x = NumericProperty(0)
+
+    def __init__(self, *args, **kwargs):
+        super(LzWinrateGraph, self).__init__(*args, **kwargs)
+
+        self.bind(current_branch_length=self.update_xs,
+                  width=self.update_xs)
+
+    def update_xs(self, *args):
+        if self.current_branch_length > 0:
+            dx = self.width / self.current_branch_length
+        else:
+            dx = self.width
+        xs = [(i + 0.5) * dx for i in range(self.current_branch_length)]
+        self.xs = xs
+        print('xs are', self.xs)
+
+    def update_current_node_x(self):
+        self.current_node_x = self.xs
+
+    def on_xs(self, instance, xs):
+        self.update_circles()
+
+    def update_circles(self):
+        while len(self.circles) < len(self.xs):
+            circle = Ellipse(10)
+            self.circles.append(circle)
+            self.canvas.add(circle)
+
+        while len(self.circles) > len(self.xs):
+            circle = self.circles.pop(-1)
+            self.canvas.remove(circle)
+
+        for circle, x in zip(self.circles, self.xs):
+            circle.size = (dp(6), dp(6))
+            circle.pos = (x - dp(3), self.y + dp(10))
+            
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return
+        self.current_touch = touch
+        self.set_current_node_index_from_touch(touch)
+
+    def on_touch_move(self, touch):
+        if not touch is self.current_touch:
+            return
+        if not self.collide_point(*touch.pos):
+            return
+
+        self.set_current_node_index_from_touch(touch)
+
+    def set_current_node_index_from_touch(self, touch):
+        x, y = touch.pos
+
+        ratio = (x - self.x) / self.width
+        ratio = max(ratio, 0)
+        ratio = min(ratio, 1)
+
+        index = int((self.current_branch_length) * ratio)
+
+        self.current_node_index = index

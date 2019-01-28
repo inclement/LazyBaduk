@@ -1532,6 +1532,10 @@
                 board: bc.board
                 on_selected_variation: bc.board.lz_variation_to_display = self.selected_variation
                 on_selected_variation: print('Displaying var: {}'.format(self.selected_variation))
+                current_node_index: bc.board.current_node_index
+                current_branch_length: bc.board.current_branch_length
+                on_current_node_index: bc.board.jump_to_node_by_number(self.current_node_index)
+                on_current_node_index: print('yay', self.current_node_index)
             # BoxLayout:
             #     Widget:
             #         size_hint_x: None
@@ -2106,6 +2110,7 @@
 <LzInfoPanel>:
     selected_variation: variation_selector.selected_variation
     orientation: 'horizontal'
+    current_node_index: winrate_graph.current_node_index
     canvas.before:
         Color:
             rgba: col.dark_primary
@@ -2116,15 +2121,23 @@
         orientation: 'vertical'
         BoxLayout:
             orientation: 'horizontal'
-            Label:
-                text: '{} {} is [b]{}[/b]\nup to date: {}'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
-                text_size: self.size
-                halign: 'center'
-                valign: 'middle'
-                color: 1, 1, 1, 1
-                markup: True
             BoxLayout:
-                size_hint_x: 0.3
+                orientation: 'vertical'
+                Label:
+                    text: '{} {} is [b]{}[/b] ({})'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+                    color: 1, 1, 1, 1
+                    markup: True
+                    size_hint_y: None
+                    height: dp(20)
+                LzWinrateGraph:
+                    id: winrate_graph
+                    current_node_index: root.current_node_index
+                    current_branch_length: root.current_branch_length
+            BoxLayout:
+                size_hint_x: 0.5
                 orientation: 'vertical'
                 ColouredButton:
                     padding: dp(2)
@@ -2185,6 +2198,28 @@
             color: 1, 1, 1, 1
         LzPonderingMarker:
             move: root.move
+
+<LzWinrateGraph>:
+    current_node_x: self.xs[self.current_node_index] if self.current_node_index < len(self.xs) else 0
+    canvas:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 1, 0, 0, 1
+        Line:
+            width: 0.75
+            points: [self.current_node_x, self.y, self.current_node_x, self.top]
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+        Line:
+            width: 1.1
+            points: [self.x, self.y + self.height / 2, self.right, self.y + self.height / 2]
+        Color:
+            rgba: 0, 1, 0, 1
+
 
 <ColouredButton>:
     background_normal: col.button_up

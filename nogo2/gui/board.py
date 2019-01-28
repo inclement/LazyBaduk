@@ -599,6 +599,7 @@ class PickNewVarType(FloatLayout):
 
 class GuiBoard(Widget):
     gridsize = NumericProperty(19)  # Board size
+    gridsize = NumericProperty(9)  # Board size
     navmode = StringProperty('Navigate')  # How to scale the board
     abstractboard = ObjectProperty(
         None, allownone=True)  # Object to query for where to play moves
@@ -627,6 +628,9 @@ class GuiBoard(Widget):
     # Game tree index
     current_node_index = NumericProperty(0)
     current_branch_length = NumericProperty(0)
+
+    def on_current_node_index(self, instance, value):
+        print('Current node index became', value)
 
     # Save state
     user_saved = BooleanProperty(False)
@@ -722,6 +726,10 @@ class GuiBoard(Widget):
             self.lz_generate_move()
         elif colour.startswith('w') and self.lz_autoplay_white and not self.lz_generating_move:
             self.lz_generate_move()
+
+    def on_lz_generating_move(self, instance, generating):
+        if not generating:
+            self.on_next_to_play(self, self.next_to_play)
 
     def check_lz_status(self, dt):
         # Check for a move to play first of all
@@ -1060,7 +1068,14 @@ class GuiBoard(Widget):
         self.follow_instructions(instructions)
 
     def jump_to_node_by_number(self, number):
-        #print 'asked to jump to node',number,'from',self.current_node_index
+        if int(number) < self.current_node_index:
+            for _ in range(self.current_node_index - number):
+                self.retreat_one_move()
+        elif int(number) > self.current_node_index:
+            for _ in range(number - self.current_node_index):
+                self.advance_one_move()
+        return
+
         if int(number) != self.current_node_index:
             instructions = self.abstractboard.jump_to_leaf_number(number)
             self.follow_instructions(instructions)
@@ -1799,9 +1814,9 @@ class GuiBoard(Widget):
         stone.set_colour(colour)
 
         if coord in self.varstones:
-            stone = self.varstones.pop(coord)
-            self.remove_widget(stone)
-            self.cache.cache_var_stone(stone)
+            old_stone = self.varstones.pop(coord)
+            self.remove_widget(old_stone)
+            self.cache.cache_var_stone(old_stone)
         self.varstones[coord] = stone
         self.add_widget(stone)
 
@@ -2009,6 +2024,7 @@ class BoardContainer(StencilView):
         self.set_boardpos()
 
     def on_touch_down(self, touch):
+
         if self.board.lz_generating_move:
             # should also do something in the gui to indicate the failure
             return
