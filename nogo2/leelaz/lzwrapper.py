@@ -5,28 +5,50 @@ import threading
 import kivy
 
 from os import path
-if kivy.platform == 'android':
-    leelaz_binary = 'leelaz_binary_android'
-else:
-    leelaz_binary = 'leelaz_binary'
-
-assert path.exists(leelaz_binary)
-print('Found LZ binary {}'.format(leelaz_binary))
 
 import os
 import stat
-st = os.stat(leelaz_binary)
-print('current stat is', st)
-os.chmod(leelaz_binary, st.st_mode | stat.S_IEXEC | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-os.chmod(leelaz_binary, 33261)
 
 os.environ['LD_LIBRARY_PATH'] = path.abspath('./')
 
 MOVE_TIME_S = 3
+MOVE_TIME_S = 10
+
+
+def choose_lz_binary(board_size):
+    cur_dir = path.dirname(__file__)
+
+    if kivy.platform == 'android':
+        leelaz_binary = 'leelaz_binary_android'
+    else:
+        leelaz_binary = 'leelaz_binary_x86_64'
+
+    assert board_size in (9, 19)  # only sizes supported for now
+
+    if board_size == 9:
+        leelaz_binary += '_9x9'
+
+    leelaz_binary = path.join(cur_dir, leelaz_binary)
+
+    assert path.exists(leelaz_binary)
+    print('Found LZ binary {}'.format(leelaz_binary))
+
+    # Make sure the binary is executable (in a hacky way for now)
+    st = os.stat(leelaz_binary)
+    print('current stat is', st)
+    os.chmod(leelaz_binary, st.st_mode | stat.S_IEXEC | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    os.chmod(leelaz_binary, 33261)
+
+    return leelaz_binary
+    
+
 
 class LeelaZeroWrapper(object):
 
-    def __init__(self):
+    def __init__(self, board_size=19):
+
+        self.leelaz_binary = choose_lz_binary(board_size)
+
         self.pondering = False
         self.process = None
 
@@ -108,7 +130,10 @@ class LeelaZeroWrapper(object):
 
     def parse_line(self, line):
         """Read and interpret a line of output from the LZ process"""
-        print('$ LZ> {}'.format(line.strip()))
+        printed_line = line.strip()
+        if len(line) > 80:
+            printed_line = line[:77] + '...'
+        print('$ LZ> {}'.format(printed_line))
 
         if line.startswith('info'):
             self.parse_lz_analysis(line)
@@ -233,8 +258,11 @@ class LeelaZeroWrapper(object):
             return
 
         print('ready to connect to LZ')
+        network = 'network.gz'
+        network = 'leelaz9x9/leelaz-model-best'
+        network = 'leelaz9x9/9x9-20-128.txt.gz'
         self.process = pexpect.spawn(
-            './{} --gtp --lagbuffer 0 --weights network.gz --resignpct 0'.format(leelaz_binary),
+            '{} --gtp --lagbuffer 0 --weights {} --resignpct 0'.format(self.leelaz_binary, network),
             timeout=None)
         print('self.process is {}, alive {}'.format(self.process, self.process.isalive()))
         assert self.process.isalive()

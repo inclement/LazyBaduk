@@ -726,7 +726,7 @@ class GuiBoard(Widget):
         self.abstractboard = AbstractBoard(gridsize=self.gridsize)
         self.reset_abstractboard()
 
-        self.lz_wrapper = lzwrapper.LeelaZeroWrapper()
+        self.lz_wrapper = lzwrapper.LeelaZeroWrapper(self.gridsize)
         Clock.schedule_interval(self.check_lz_status, 0.3)
 
     def on_lz_autoplay_black(self, instance, value):
@@ -826,12 +826,9 @@ class GuiBoard(Widget):
             best_move = sorted(self.lz_analysis, key=lambda move: move.winrate)[-1]
             cur_node = self.abstractboard.curnode
             winrate = best_move.winrate
-            print('next to play is {}'.format(self.next_to_play))
             if self.next_to_play.startswith('b'):
                 winrate = 100.0 - winrate
             self.lz_winrates_by_node[cur_node] = (winrate / 100.0, best_move.visits)
-            print(winrate, best_move.visits, self.lz_winrates_by_node[cur_node])
-            # print(self.lz_winrates_by_node)
 
     def lz_add_stone(self, coords, colour):
         letter_ord = ord('A') + coords[0]

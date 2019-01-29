@@ -1456,6 +1456,13 @@
 
     orientation: 'vertical'
 
+    canvas:
+        Color:
+            rgba: col.dark_primary
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     BoxLayout:
         orientation: 'horizontal'
         size_hint: (1., None)
@@ -1534,12 +1541,24 @@
                 color: (1, 1, 1, 1)
                 background_normal: (0, 0, 0, 1)
                 on_release: bc.board.lz_autoplay_black = (self.state == 'down')
+                canvas:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        rounded_rectangle: self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), dp(5)
+                        width: 1.5
             ColouredToggleButton:
                 padding: dp(2)
                 text: 'play W'
                 color: (0, 0, 0, 1) if self.state == 'normal' else (1, 1, 1, 1)
                 background_normal: (1, 1, 1, 1)
                 on_release: bc.board.lz_autoplay_white = (self.state == 'down')
+                canvas:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Line:
+                        rounded_rectangle: self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), dp(5)
+                        width: 1.5
             ColouredButton:
                 padding: dp(2)
                 text: 'play now'
