@@ -722,7 +722,6 @@ class AbstractBoard(object):
             return {}
 
     def jump_to_node(self, node):
-        #return {'add':[((randint(0,18),randint(0,18)),['w','b'][randint(0,1)])]}
         oldboard = self.boards[self.curnode]
         self.curnode = node
         newboard = self.get_or_build_board(node)

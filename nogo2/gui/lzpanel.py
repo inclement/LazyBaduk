@@ -4,7 +4,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.widget import Widget
 from kivy.properties import (StringProperty, BooleanProperty, ObjectProperty,
                              ListProperty, NumericProperty)
-from kivy.graphics.vertex_instructions import Ellipse
+from kivy.graphics.vertex_instructions import Rectangle
+from kivy.graphics.context_instructions import Color
 from kivy.metrics import dp
 
 from colorsys import hsv_to_rgb
@@ -20,6 +21,8 @@ class LzInfoPanel(BoxLayout):
     lz_generating_move = BooleanProperty(False)
 
     lz_analysis = ListProperty([])
+
+    lz_winrates_flat = ListProperty([])
 
     selected_variation = ObjectProperty(None, allownone=True)
 
@@ -134,8 +137,11 @@ class LzWinrateGraph(Widget):
     current_touch = ObjectProperty(None, allownone=True)
 
     xs = ListProperty([])
-    circles = ListProperty([])
+    rectangles = ListProperty([])
+    colours = ListProperty([])
     current_node_x = NumericProperty(0)
+
+    winrates = ListProperty([])
 
     def __init__(self, *args, **kwargs):
         super(LzWinrateGraph, self).__init__(*args, **kwargs)
@@ -156,21 +162,51 @@ class LzWinrateGraph(Widget):
         self.current_node_x = self.xs
 
     def on_xs(self, instance, xs):
-        self.update_circles()
+        self.update_rectangles()
 
-    def update_circles(self):
-        while len(self.circles) < len(self.xs):
-            circle = Ellipse(10)
-            self.circles.append(circle)
-            self.canvas.add(circle)
+    def on_winrates(self, instance, winrates):
+        self.update_rectangles()
 
-        while len(self.circles) > len(self.xs):
-            circle = self.circles.pop(-1)
-            self.canvas.remove(circle)
+    def update_rectangles(self):
+        winrates = self.winrates
+        if len(winrates) != len(self.xs):
+            winrates = [(0.5, 0) for _ in self.xs]
 
-        for circle, x in zip(self.circles, self.xs):
-            circle.size = (dp(6), dp(6))
-            circle.pos = (x - dp(3), self.y + dp(10))
+        while len(self.rectangles) < len(self.xs):
+            # self.colours has the same length as self.rectangles
+            colour = Color()
+            self.colours.append(colour)
+            self.canvas.add(colour)
+
+            rectangle = Rectangle(pos=(0, 0), size=(10, 10))
+            self.rectangles.append(rectangle)
+            self.canvas.add(rectangle)
+
+
+        while len(self.rectangles) > len(self.xs):
+            colour = self.colours.pop(-1)
+            self.canvas.remove(colour)
+            
+            rectangle = self.rectangles.pop(-1)
+            self.canvas.remove(rectangle)
+
+        if len(self.xs) > 1:
+            dx = self.xs[1] - self.xs[0]
+        else:
+            dx = self.width
+        for colour, rectangle, x, winrate in zip(self.colours, self.rectangles, self.xs, winrates):
+            winrate, playouts = winrate
+
+            if playouts == 0:
+                colour.rgba = (0.5, 0.5, 0.5, 1)
+                rectangle.size = (dx, self.height)
+                rectangle.pos = (x - dx / 2., self.y)
+            else:
+                colour.rgba = (1, 1, 1, 1)
+                rectangle.size = (dx, winrate * self.height)
+                rectangle.pos = (x - dx / 2., self.y)
+
+
             
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):

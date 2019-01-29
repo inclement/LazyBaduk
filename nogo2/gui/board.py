@@ -629,9 +629,6 @@ class GuiBoard(Widget):
     current_node_index = NumericProperty(0)
     current_branch_length = NumericProperty(0)
 
-    def on_current_node_index(self, instance, value):
-        print('Current node index became', value)
-
     # Save state
     user_saved = BooleanProperty(False)
     temporary_filepath = StringProperty('')
@@ -703,6 +700,24 @@ class GuiBoard(Widget):
     lz_generating_move = BooleanProperty(False)
     lz_autoplay_black = BooleanProperty(False)
     lz_autoplay_white = BooleanProperty(False)
+    lz_winrates_by_node = DictProperty({})
+    lz_indices_by_node = DictProperty({})
+    lz_winrates_by_index = ListProperty([])
+
+    lz_winrates_flat = ListProperty([])
+
+    def on_lz_winrates_by_node(self, instance, value):
+        self.calculate_flattened_winrates()
+
+    def on_current_branch_length(self, instance, value):
+        self.calculate_flattened_winrates()
+
+    def calculate_flattened_winrates(self):
+        var_len, current_var_nodes = self.abstractboard.get_current_var_tree()
+
+        self.lz_winrates_flat = [
+            self.lz_winrates_by_node.get(node, (0.5, 0))
+            for node in current_var_nodes]
 
     def __init__(self, *args, **kwargs):
         super(GuiBoard, self).__init__(*args, **kwargs)
@@ -805,6 +820,18 @@ class GuiBoard(Widget):
                                            move=move)
                 self.add_widget(marker)
                 self.lz_pondering_markers[coord] = marker
+
+        # Update the current move's winrate
+        if self.lz_analysis:
+            best_move = sorted(self.lz_analysis, key=lambda move: move.winrate)[-1]
+            cur_node = self.abstractboard.curnode
+            winrate = best_move.winrate
+            print('next to play is {}'.format(self.next_to_play))
+            if self.next_to_play.startswith('b'):
+                winrate = 100.0 - winrate
+            self.lz_winrates_by_node[cur_node] = (winrate / 100.0, best_move.visits)
+            print(winrate, best_move.visits, self.lz_winrates_by_node[cur_node])
+            # print(self.lz_winrates_by_node)
 
     def lz_add_stone(self, coords, colour):
         letter_ord = ord('A') + coords[0]

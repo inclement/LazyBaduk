@@ -1535,7 +1535,7 @@
                 current_node_index: bc.board.current_node_index
                 current_branch_length: bc.board.current_branch_length
                 on_current_node_index: bc.board.jump_to_node_by_number(self.current_node_index)
-                on_current_node_index: print('yay', self.current_node_index)
+                lz_winrates_flat: bc.board.lz_winrates_flat
             # BoxLayout:
             #     Widget:
             #         size_hint_x: None
@@ -2123,19 +2123,20 @@
             orientation: 'horizontal'
             BoxLayout:
                 orientation: 'vertical'
-                Label:
-                    text: '{} {} is [b]{}[/b] ({})'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
-                    text_size: self.size
-                    halign: 'center'
-                    valign: 'middle'
-                    color: 1, 1, 1, 1
-                    markup: True
-                    size_hint_y: None
-                    height: dp(20)
+                # Label:
+                #     text: '{} {} is [b]{}[/b] ({})'.format(root.lz_name if root.lz_name else 'AI', root.lz_version, root.lz_status, root.lz_up_to_date)
+                #     text_size: self.size
+                #     halign: 'center'
+                #     valign: 'middle'
+                #     color: 1, 1, 1, 1
+                #     markup: True
+                #     size_hint_y: None
+                #     height: dp(20)
                 LzWinrateGraph:
                     id: winrate_graph
                     current_node_index: root.current_node_index
                     current_branch_length: root.current_branch_length
+                    winrates: root.lz_winrates_flat
             BoxLayout:
                 size_hint_x: 0.5
                 orientation: 'vertical'
@@ -2216,9 +2217,9 @@
             rgba: 0.5, 0.5, 0.5, 1
         Line:
             width: 1.1
-            points: [self.x, self.y + self.height / 2, self.right, self.y + self.height / 2]
+            points: [self.x, self.y + self.height / 2 - 1.1, self.right, self.y + self.height / 2 - 1.1]
         Color:
-            rgba: 0, 1, 0, 1
+            rgba: 1, 1, 1, 1
 
 
 <ColouredButton>:
