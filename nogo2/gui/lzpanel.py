@@ -147,7 +147,9 @@ class LzWinrateGraph(Widget):
         super(LzWinrateGraph, self).__init__(*args, **kwargs)
 
         self.bind(current_branch_length=self.update_xs,
-                  width=self.update_xs)
+                  width=self.update_xs,
+                  pos=self.update_graph_canvas,
+                  size=self.update_graph_canvas)
 
     def update_xs(self, *args):
         if self.current_branch_length > 0:
@@ -162,12 +164,12 @@ class LzWinrateGraph(Widget):
         self.current_node_x = self.xs
 
     def on_xs(self, instance, xs):
-        self.update_rectangles()
+        self.update_graph_canvas()
 
     def on_winrates(self, instance, winrates):
-        self.update_rectangles()
+        self.update_graph_canvas()
 
-    def update_rectangles(self):
+    def update_graph_canvas(self, *args):
         winrates = self.winrates
         if len(winrates) != len(self.xs):
             winrates = [(0.5, 0) for _ in self.xs]

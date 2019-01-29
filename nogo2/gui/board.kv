@@ -1496,76 +1496,11 @@
         size_hint_y: None if Window.height > 1.2*Window.width else 0.6
         height: Window.width
 
-        uielements: {'varbutton': [btn_nextvar]}
-
     DividerLine:
 
     BoxLayout:
-        size_hint: (1.0,0.2)
-        orientation: 'horizontal'
-        # CarouselLeftArrow:
-        #     size_hint_x: None
-        #     width: sp(20)
-        #     on_press: comcar.load_previous()
-        #     disabled: True
-        #     opacity: 0.0
-        BoardCarousel:
-            board: bc.board
-            board_navmode: bc.board.navmode
-            loop: True
-            id: comcar
-            scroll_timeout: 0
-            min_move: 0.001
-            # CommentBox:
-            #     id: thecb
-            #     text: bc.board.permanent_text + bc.board.comment_pre_text + bc.board.comment_text
-            #     board: bc.board
-            LzInfoPanel:
-                id: lz_info_panel
-                lz_name: bc.board.lz_name
-                lz_version: bc.board.lz_version
-                lz_ready: bc.board.lz_ready
-                lz_up_to_date: bc.board.lz_up_to_date
-                lz_status: bc.board.lz_status
-                lz_analysis: bc.board.lz_analysis
-                lz_generating_move: bc.board.lz_generating_move
-                board: bc.board
-                on_selected_variation: bc.board.lz_variation_to_display = self.selected_variation
-                on_selected_variation: print('Displaying var: {}'.format(self.selected_variation))
-                current_node_index: bc.board.current_node_index
-                current_branch_length: bc.board.current_branch_length
-                on_current_node_index: bc.board.jump_to_node_by_number(self.current_node_index)
-                lz_winrates_flat: bc.board.lz_winrates_flat
-            # BoxLayout:
-            #     Widget:
-            #         size_hint_x: None
-            #         width: (10,'sp')
-            #     GameSlider:
-            #         min: 0
-            #         max: bc.board.current_branch_length - 1
-            #         value: bc.board.current_node_index
-            #         on_value: bc.board.jump_to_node_by_number(int(self.value))
-            #     Widget:
-            #         size_hint_x: None
-            #         width: (10,'sp')
-            # EditPanel:
-            #     id: boardedit
-            #     board: bc.board
-            #     board_to_play: bc.board.next_to_play
-            #     board_navmode: bc.board.navmode
-        # CarouselRightArrow:
-        #     size_hint_x: None
-        #     width: sp(20)
-        #     on_press: comcar.load_next()
-        #     disabled: True
-        #     opacity: 0.0
-
-    DividerLine:
-    BoxLayout:
-        orientation: 'horizontal'
-        size_hint: (1.0,None)
-        height: (45,'sp')
-
+        orientation: 'vertical'
+        size_hint: (1.0, 0.3)
         canvas:
             Color:
                 rgba: col.dark_primary
@@ -1573,53 +1508,62 @@
                 pos: self.pos
                 size: self.size
 
-        VarBranchButton:
-            id: btn_varbranch
-            on_release: bc.board.back_to_varbranch()
-            background_color: col.dark_primary
-            background_down_color: col.light_primary
-            disabled: True
-            opacity: 0.0
-        VDividerLine
-        PrevButton:
-            id: btn_prevmove
-            on_release: bc.board.retreat_one_move()
-            background_color: col.dark_primary
-            background_down_color: col.light_primary
-            disabled: root.board.lz_generating_move
-        VDividerLine
-        Button:
-            id: btn_nextvar
-            text: 'Next var\n (1 / 1)'
-            on_press: bc.board.time_start();bc.board.next_variation()
-            on_release: bc.board.time_stop()
-            background_normal: 'media/dull_pixel.png'
-            background_down: 'media/blue_press_pixel.png'
-            color: col.icon
-            disabled: True
-            opacity: 0.0
-        VDividerLine
-        NextButton:
-            board: bc.board
-            id: btn_nextmove
-            on_release: bc.board.advance_one_move()
-            background_color: col.dark_primary
-            background_down_color: col.light_primary
-            disabled: root.board.lz_generating_move
-        VDividerLine
-        # GameOptionsButton:
-        #     id: btn_options
-        #     board: root.board
-        #     background_color: col.dark_primary
-        #     background_down_color: col.light_primary
-        #     disabled: True
-        #     opacity: 0.0
-        ColouredToggleButton:
-            text: 'ponder'
-            disabled: (not root.board.lz_ready) or root.board.lz_generating_move
-            on_state: root.board.lz_ponder(self.state == 'down')
-            on_disabled: self.state = 'normal' if root.board.lz_generating_move else self.state
-            padding: dp(2)
+        LzWinrateGraph:
+            id: winrate_graph
+            current_node_index: bc.board.current_node_index
+            current_branch_length: bc.board.current_branch_length
+            winrates: bc.board.lz_winrates_flat
+            on_current_node_index: bc.board.jump_to_node_by_number(self.current_node_index)
+
+        LzVariationSelector:
+            size_hint: (1.0,None)
+            height: (45,'sp')
+            id: variation_selector
+            size_hint_y: None
+            height: min(dp(50), max(dp(20), self.width / 12.0))
+            moves: bc.board.lz_analysis
+            on_selected_variation: bc.board.lz_variation_to_display = self.selected_variation
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: (1.0,None)
+            height: (45,'sp')
+
+            ColouredToggleButton:
+                padding: dp(2)
+                text: 'play B'
+                color: (1, 1, 1, 1)
+                background_normal: (0, 0, 0, 1)
+                on_release: bc.board.lz_autoplay_black = (self.state == 'down')
+            ColouredToggleButton:
+                padding: dp(2)
+                text: 'play W'
+                color: (0, 0, 0, 1) if self.state == 'normal' else (1, 1, 1, 1)
+                background_normal: (1, 1, 1, 1)
+                on_release: bc.board.lz_autoplay_white = (self.state == 'down')
+            ColouredButton:
+                padding: dp(2)
+                text: 'play now'
+                on_release: bc.board.lz_generate_move()
+                disabled: (not bc.board.lz_ready) or bc.board.lz_generating_move
+            PrevButton:
+                id: btn_prevmove
+                on_release: bc.board.retreat_one_move()
+                background_color: col.dark_primary
+                background_down_color: col.light_primary
+                disabled: root.board.lz_generating_move
+            NextButton:
+                board: bc.board
+                id: btn_nextmove
+                on_release: bc.board.advance_one_move()
+                background_color: col.dark_primary
+                background_down_color: col.light_primary
+                disabled: root.board.lz_generating_move
+            ColouredToggleButton:
+                text: 'ponder'
+                disabled: (not root.board.lz_ready) or root.board.lz_generating_move
+                on_state: root.board.lz_ponder(self.state == 'down')
+                on_disabled: self.state = 'normal' if root.board.lz_generating_move else self.state
+                padding: dp(2)
 
         
 <GameOptions>:
@@ -2108,7 +2052,7 @@
             
 
 <LzInfoPanel>:
-    selected_variation: variation_selector.selected_variation
+    # selected_variation: variation_selector.selected_variation
     orientation: 'horizontal'
     current_node_index: winrate_graph.current_node_index
     canvas.before:
@@ -2159,11 +2103,11 @@
                         color: (0, 0, 0, 1) if self.state == 'normal' else (1, 1, 1, 1)
                         background_normal: (1, 1, 1, 1)
                         on_release: root.board.lz_autoplay_white = (self.state == 'down')
-        LzVariationSelector:
-            id: variation_selector
-            size_hint_y: None
-            height: min(dp(50), max(dp(20), self.width / 12.0))
-            moves: root.lz_analysis
+        # LzVariationSelector:
+        #     id: variation_selector
+        #     size_hint_y: None
+        #     height: min(dp(50), max(dp(20), self.width / 12.0))
+        #     moves: root.lz_analysis
 
 <LzPonderingMarker>:
     text: '{:.1f}\n{}'.format(self.winrate, self.visits)
