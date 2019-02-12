@@ -1452,7 +1452,6 @@
 <PhoneBoardView>:
     boardcontainer: bc
     board: bc.board
-    spinner: navspinner
 
     orientation: 'vertical'
 
@@ -1464,6 +1463,7 @@
             size: self.size
 
     BoxLayout:
+        id: navbar
         orientation: 'horizontal'
         size_hint: (1., None)
         height: dp(48)
@@ -1474,29 +1474,37 @@
                 pos: self.pos
                 size: self.size
 
-        BoxLayout:
-            padding: dp(2), dp(2)
-            PlayerDetails:
-                id: pd
-                board: bc.board
-                size_hint: (0.75,1.0)
+        PlayerDetails:
+            id: pd
+            board: bc.board
+            size_hint_x: None
+            width: 0.7 * self.height
 
-                wtext: bc.board.wname
-                wrank: bc.board.wrank
-                btext: bc.board.bname
-                brank: bc.board.brank
-                next_to_play: bc.board.next_to_play
-                on_next_to_play: self.set_to_play(self.next_to_play)
+            wtext: bc.board.wname
+            wrank: bc.board.wrank
+            btext: bc.board.bname
+            brank: bc.board.brank
+            next_to_play: bc.board.next_to_play
+            on_next_to_play: self.set_to_play(self.next_to_play)
 
-        ReversibleSpinner:
-            id: navspinner
-            text: 'Navigate'
-            values: ['Navigate','Play','Edit','Score','Guess']
-            size_hint: (0.25,1.0)
-            on_text: bc.board.set_navmode(self,self.text)
-            option_cls: Factory.MySpinnerOption
-            disabled: True
-            opacity: 0.0
+        Widget:  # spacer
+            size_hint_x: None
+            width: dp(10)
+
+        Label:
+            text: "LZ is [b]{}[/b]".format(bc.board.lz_status)
+            markup: True
+            text_size: self.size
+            halign: 'left'
+            valign: 'center'
+            on_text: print('self.text is', self.text)
+            color: 1, 1, 1, 1
+            # canvas:
+            #     Color:
+            #         rgba: 1, 0, 0, 1
+            #     Rectangle:
+            #         pos: self.pos
+            #         size: self.size
 
     BoardContainer:
         id: bc
@@ -2011,15 +2019,6 @@
                 Ellipse:
                     pos: self.pos[0] + 0.35*self.width, self.pos[1] + 0.35*self.height
                     size: 0.3*self.width,0.3*self.height
-        Label:
-            text: ''.join(('',self.parent.parent.wtext,' ',self.parent.parent.wrank,''))
-            font_size: 0.7*self.height
-            markup: True
-            text_size: self.width-20, self.height
-            halign: 'left'
-            valign: 'middle'
-            color: col.icon
-
     BoxLayout:
         orientation: 'horizontal'
         Image:
@@ -2034,18 +2033,6 @@
                 Ellipse:
                     pos: self.pos[0] + 0.35*self.width, self.pos[1] + 0.35*self.height
                     size: 0.3*self.width,0.3*self.height
-        Label:
-            text: ''.join(('',self.parent.parent.btext,' ',self.parent.parent.brank,''))
-            font_size: 0.7*self.height
-            markup: True
-            text_size: self.width-20, self.height
-            halign: 'left'
-            valign: 'middle'
-            color: col.icon
-
-        
-
-        
 
 <CommentBox>:
     textbox: thetb

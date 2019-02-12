@@ -689,7 +689,7 @@ class GuiBoard(Widget):
     gobanpos = ListProperty((100, 100))
 
     lz_wrapper = ObjectProperty()
-    lz_status = StringProperty('loading')
+    lz_status = StringProperty('initialising')
     lz_ready = BooleanProperty(False)
     lz_up_to_date = BooleanProperty(True)
     lz_version = StringProperty('')
@@ -766,7 +766,7 @@ class GuiBoard(Widget):
             self.lz_analysis = self.lz_wrapper.current_analysis
 
         if not self.lz_wrapper.process.isalive():
-            self.lz_status = 'dead'
+            self.lz_status = 'dead/crashed'
         elif self.lz_wrapper.lz_generating_move:
             self.lz_status = 'generating {} move'.format(self.next_to_play.upper())
         elif self.lz_wrapper.pondering:
