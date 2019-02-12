@@ -197,6 +197,7 @@ class LzWinrateGraph(Widget):
         for colour, rectangle, x, winrate in zip(self.colours, self.rectangles, self.xs, winrates):
             winrate, playouts = winrate
 
+            x += 0.00000001  # prevent graph bars touching if the number of bars divides the number of pixels across
             left = int(x - dx / 2.) + 1.0
             right = int(x + dx / 2.)
             width = right - left

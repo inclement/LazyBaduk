@@ -218,21 +218,24 @@ class LeelaZeroWrapper(object):
                                                self.lz_version is not None])
 
     def play_move(self, colour, coordinates):
+        last_command = self.command_queue[-1] if self.command_queue else ''
+
         colour_string = 'black' if colour.startswith('b') else 'white'
 
         self.send_command('play {colour} {coordinates}'.format(
             colour=colour_string,
             coordinates=coordinates))
 
-        if self.pondering:
+        if self.pondering or last_command.startswith('lz-analyze'):
             self.send_command('lz-analyze 25')
 
         self.current_analysis = []
 
     def undo_move(self):
+        last_command = self.command_queue[-1] if self.command_queue else ''
         self.send_command('undo')
 
-        if self.pondering:
+        if self.pondering or last_command.startswith('lz-analyze'):
             self.send_command('lz-analyze 25')
 
         self.current_analysis = []
