@@ -2129,10 +2129,10 @@ class BoardContainer(StencilView):
         inputmode = self.board.input_mode
         real_coord = self.board.pos_to_coord(touch.pos, False)
         prev_coord = self.board.abstractboard.get_current_move_coord()
-        if prev_coord == real_coord and prev_coord in self.board.stones:
-            touch.ud['movestone'] = prev_coord
-            print('movestone!')
-            return
+        # if prev_coord == real_coord and prev_coord in self.board.stones:
+        #     touch.ud['movestone'] = prev_coord
+        #     print('movestone!')
+        #     return
         if inputmode == 'mark_tri':
             marker = MakeTriangleMarker(
                 coord=self.board.pos_to_coord(touch.pos),
@@ -2197,40 +2197,40 @@ class BoardContainer(StencilView):
             if ((0 <= finalcoord[0] < self.board.gridsize) and
                 (0 <= finalcoord[1] < self.board.gridsize)):
                 self.board.take_stone_input(finalcoord)
-        if 'movestone' in touch.ud:
-            print('movestone touch up')
-            newcoord = self.board.pos_to_coord(touch.pos, False)
-            oldcoord = touch.ud.pop('movestone')
-            print(('movement', newcoord, oldcoord))
-            dx = newcoord[0] - oldcoord[0]
-            dy = newcoord[1] - oldcoord[1]
-            if newcoord in self.board.stones:
-                return
-            if not (abs(dx) == 1 and abs(dy) == 0 or abs(dx) == 0 and
-                    abs(dy) == 1):
-                return
-            if oldcoord not in self.board.stones:
-                return
-            stone = self.board.stones.pop(oldcoord)
-            instructions_back = self.board.abstractboard.retreat_position()
-            instructions_forward = self.board.abstractboard.replace_next_node(
-                newcoord, stone.colour[0])
+        # if 'movestone' in touch.ud:
+        #     print('movestone touch up')
+        #     newcoord = self.board.pos_to_coord(touch.pos, False)
+        #     oldcoord = touch.ud.pop('movestone')
+        #     print(('movement', newcoord, oldcoord))
+        #     dx = newcoord[0] - oldcoord[0]
+        #     dy = newcoord[1] - oldcoord[1]
+        #     if newcoord in self.board.stones:
+        #         return
+        #     if not (abs(dx) == 1 and abs(dy) == 0 or abs(dx) == 0 and
+        #             abs(dy) == 1):
+        #         return
+        #     if oldcoord not in self.board.stones:
+        #         return
+        #     stone = self.board.stones.pop(oldcoord)
+        #     instructions_back = self.board.abstractboard.retreat_position()
+        #     instructions_forward = self.board.abstractboard.replace_next_node(
+        #         newcoord, stone.colour[0])
 
-            self.board.follow_instructions(instructions_back)
-            self.board.follow_instructions(instructions_forward)
-            self.board.remove_stone(newcoord)
-            # back_removes = instructions_back['remove']
-            # back_adds = instructions_back['add']
-            # fore_removes = instructions_forward['remove']
-            # fore_add = instructions_forward['add']
+        #     self.board.follow_instructions(instructions_back)
+        #     self.board.follow_instructions(instructions_forward)
+        #     self.board.remove_stone(newcoord)
+        #     # back_removes = instructions_back['remove']
+        #     # back_adds = instructions_back['add']
+        #     # fore_removes = instructions_forward['remove']
+        #     # fore_add = instructions_forward['add']
 
-            self.board.stones[newcoord] = stone
-            newpos = self.board.coord_to_pos(newcoord)
-            anim = Animation(pos=newpos, t='in_out_sine', duration=0.3)
-            anim.start(stone)
-            if self.board.playmarker is not None:
-                anim = Animation(pos=newpos, t='in_out_sine', duration=0.3)
-                anim.start(self.board.playmarker)
+        #     self.board.stones[newcoord] = stone
+        #     newpos = self.board.coord_to_pos(newcoord)
+        #     anim = Animation(pos=newpos, t='in_out_sine', duration=0.3)
+        #     anim.start(stone)
+        #     if self.board.playmarker is not None:
+        #         anim = Animation(pos=newpos, t='in_out_sine', duration=0.3)
+        #         anim.start(self.board.playmarker)
 
     def _keyboard_closed(self):
         print('My keyboard has been closed!')
