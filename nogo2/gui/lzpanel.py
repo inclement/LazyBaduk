@@ -140,6 +140,7 @@ class LzWinrateGraph(Widget):
     rectangles = ListProperty([])
     colours = ListProperty([])
     current_node_x = NumericProperty(0)
+    node_width = NumericProperty(1)
 
     winrates = ListProperty([])
 
@@ -159,9 +160,6 @@ class LzWinrateGraph(Widget):
         xs = [(i + 0.5) * dx for i in range(self.current_branch_length)]
         self.xs = xs
         print('xs are', self.xs)
-
-    def update_current_node_x(self):
-        self.current_node_x = self.xs
 
     def on_xs(self, instance, xs):
         self.update_graph_canvas()
@@ -199,14 +197,18 @@ class LzWinrateGraph(Widget):
         for colour, rectangle, x, winrate in zip(self.colours, self.rectangles, self.xs, winrates):
             winrate, playouts = winrate
 
+            left = int(x - dx / 2.) + 1.0
+            right = int(x + dx / 2.)
+            width = right - left
+
             if playouts == 0:
                 colour.rgba = (0.5, 0.5, 0.5, 1)
-                rectangle.size = (dx, self.height)
-                rectangle.pos = (x - dx / 2., self.y)
+                rectangle.size = (width, self.height)
+                rectangle.pos = (left, self.y)
             else:
                 colour.rgba = (1, 1, 1, 1)
-                rectangle.size = (dx, winrate * self.height)
-                rectangle.pos = (x - dx / 2., self.y)
+                rectangle.size = (width, winrate * self.height)
+                rectangle.pos = (left, self.y)
 
 
             

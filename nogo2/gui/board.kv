@@ -2152,21 +2152,22 @@
 
 <LzWinrateGraph>:
     current_node_x: self.xs[self.current_node_index] if self.current_node_index < len(self.xs) else 0
-    canvas:
+    node_width: (self.xs[1] - self.xs[0]) if len(self.xs) > 1 else 1
+    canvas.before:
         Color:
             rgba: 0, 0, 0, 1
         Rectangle:
             pos: self.pos
             size: self.size
+    canvas.after:
         Color:
-            rgba: 1, 0, 0, 1
-        Line:
-            width: 0.75
-            points: [self.current_node_x, self.y, self.current_node_x, self.top]
+            rgba: 1, 0.3, 0.3, 1
+        Triangle:
+            points: [self.current_node_x - (self.node_width - 1) / 2.0, self.y, self.current_node_x + (self.node_width - 1) / 2.0, self.y, self.current_node_x, self.y + 0.05 * self.height]
         Color:
             rgba: 0.5, 0.5, 0.5, 1
         Line:
-            width: 1.1
+            width: 1
             points: [self.x, self.y + self.height / 2 - 1.1, self.right, self.y + self.height / 2 - 1.1]
         Color:
             rgba: 1, 1, 1, 1

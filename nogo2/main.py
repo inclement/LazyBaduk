@@ -44,6 +44,12 @@ class NogoApp(App):
         return True
 
     def on_stop(self):
+        self.clean_up_subprocess()
+
+    def on_request_close(self, *args, **kwargs):
+        self.clean_up_subprocess()
+
+    def clean_up_subprocess(self):
         self.root.ids.bc.board.lz_ponder(False)
         self.root.ids.bc.board.lz_wrapper.kill()
 
