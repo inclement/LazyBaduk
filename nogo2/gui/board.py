@@ -599,7 +599,7 @@ class PickNewVarType(FloatLayout):
 
 class GuiBoard(Widget):
     gridsize = NumericProperty(19)  # Board size
-    gridsize = NumericProperty(9)  # Board size
+    # gridsize = NumericProperty(9)  # Board size
     navmode = StringProperty('Navigate')  # How to scale the board
     abstractboard = ObjectProperty(
         None, allownone=True)  # Object to query for where to play moves

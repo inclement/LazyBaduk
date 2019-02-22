@@ -3,6 +3,7 @@
 #:import Factory kivy.factory.Factory
 #:import Window kivy.core.window.Window
 #:import col style
+#:import platform kivy.platform
 
 <Label>:
     color: col.text_primary
@@ -1055,25 +1056,15 @@
 
 <NextButton@ColouredButton>:
     padding: dp(2)
-    canvas:
-        Color:
-            rgb: (0.9, 0.9, 0.9)
-        Line:
-            points: [self.x + 0.5*self.width - 5, self.y + 0.5*self.height - 10, self.x + 0.5*self.width + 5, self.y + 0.5*self.height, self.x + 0.5*self.width - 5, self.y + 0.5*self.height + 10]
-            width: 2
-            cap: 'square'
-            joint: 'miter'
+    font_name: 'assets/fontello.ttf'
+    text: 'r'
+    font_size: 0.5 * self.height
 
 <PrevButton@ColouredButton>:
     padding: dp(2)
-    canvas:
-        Color:
-            rgb: (0.9, 0.9, 0.9)
-        Line:
-            points: [self.x + 0.5*self.width + 5, self.y + 0.5*self.height - 10, self.x + 0.5*self.width - 5, self.y + 0.5*self.height, self.x + 0.5*self.width + 5, self.y + 0.5*self.height + 10]
-            width: 2
-            cap: 'square'
-            joint: 'miter'
+    font_name: 'assets/fontello.ttf'
+    font_size: 0.5 * self.height
+    text: 'l'
            
 <CommentInput>:
     orientation: 'vertical'
@@ -1505,6 +1496,25 @@
             #     Rectangle:
             #         pos: self.pos
             #         size: self.size
+        Label:
+            id: input_offset_checkbox_label
+            size_hint_x: None
+            width: dp(45)
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+            text: 'input\noffset'
+            color: (0.85, 0.85, 0.85, 1)
+        ButtonCheckbox:
+            active: platform == 'android'
+            size_hint_x: None
+            width: self.height * 0.85
+            draw_colour: input_offset_checkbox_label.color
+            text_colour: input_offset_checkbox_label.color
+            on_active: bc.board.touchoffset = ((0, 3) if self.active else (0, 0))
+            on_parent: bc.board.touchoffset = ((0, 3) if self.active else (0, 0))
+
+
 
     BoardContainer:
         id: bc
@@ -2211,3 +2221,23 @@
             pos: self.x + self.coloured_button_padding, self.y + self.coloured_button_padding
             size: self.width - 2*self.coloured_button_padding, self.height - 2*self.coloured_button_padding
             radius: [(self.radius, self.radius) for _ in range(4)]
+
+<ButtonCheckbox>:
+    on_release: self.active = not self.active
+    font_name: 'assets/fontello.ttf'
+    text: 't'
+    # color: (1, 1, 1, 1) if self.active else (0, 0, 0, 0)
+    color: self.text_colour[:3] + [self.text_colour[3] if self.active else 0]
+    font_size: dp(20)
+    box_size: dp(22)
+    canvas:
+        Color:
+            rgba: self.draw_colour[:3] + [self.draw_colour[3] if self.state == 'down' else 0]
+        Rectangle: 
+            pos: self.center_x - 0.5*self.box_size, self.center_y - 0.5*self.box_size
+            size: self.box_size, self.box_size
+        Color:
+            rgba: self.draw_colour
+        Line:
+            rectangle: self.center_x - 0.5*self.box_size, self.center_y - 0.5*self.box_size, self.box_size, self.box_size
+            width: 1.1

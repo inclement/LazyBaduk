@@ -1,5 +1,8 @@
+import os
+
 from kivy.app import App
 from kivy import platform
+from kivy.core.window import Window
 from kivy.properties import (ObjectProperty, StringProperty)
 
 import sys
@@ -14,6 +17,7 @@ sys.path.append(join(nogo_path, 'ext'))
 #     from .gui import board
 # else:
 #     from nogo2.gui import board
+
 
 from gui import board, misc
 from widgetcache import WidgetCache
@@ -33,7 +37,28 @@ class NogoApp(App):
     def build(self):
         w = board.PhoneBoardView()
 
+        Window.bind(on_keyboard=self.key_input)
+        Window.bind(on_request_close=self.on_request_close)
+
         return w
+
+    def key_input(self, window, key, scancode, codepoint, modifier):
+        print('Received key {}'.format(key))
+        # if key == 27:
+        # #     print('manually killed')
+        # #     self.root.ids.bc.board.lz_ponder(False)
+        # #     self.root.ids.bc.board.lz_wrapper.kill()
+        #     self.back_button_leave_app()
+        #     return True  # back button now does nothing on Android
+        return False
+
+    def back_button_leave_app(self):
+        if platform != 'android':
+            return
+        from jnius import autoclass
+        activity = autoclass('org.kivy.android.PythonActivity')
+        activity.moveTaskToBack(True)
+
 
     def play_stone_sound(self):
         pass

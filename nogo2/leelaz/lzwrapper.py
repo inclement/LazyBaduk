@@ -11,8 +11,8 @@ import stat
 
 os.environ['LD_LIBRARY_PATH'] = path.abspath('./')
 
-MOVE_TIME_S = 3
-MOVE_TIME_S = 10
+MOVE_TIME_S = 5
+# MOVE_TIME_S = 10
 
 
 def choose_lz_binary(board_size):
@@ -48,6 +48,7 @@ class LeelaZeroWrapper(object):
     def __init__(self, board_size=19):
 
         self.leelaz_binary = choose_lz_binary(board_size)
+        self.board_size = board_size
 
         self.pondering = False
         self.process = None
@@ -226,6 +227,7 @@ class LeelaZeroWrapper(object):
             colour=colour_string,
             coordinates=coordinates))
 
+        print('!!', self.pondering, last_command)
         if self.pondering or last_command.startswith('lz-analyze'):
             self.send_command('lz-analyze 25')
 
@@ -261,9 +263,14 @@ class LeelaZeroWrapper(object):
             return
 
         print('ready to connect to LZ')
-        network = 'network.gz'
-        network = 'leelaz9x9/leelaz-model-best'
-        network = 'leelaz9x9/9x9-20-128.txt.gz'
+        if self.board_size == 19:
+            network = 'network.gz'
+            # network = '33986b7f9456660c0877b1fc9b310fc2d4e9ba6aa9cee5e5d242bd7b2fb1b166.gz'
+            network = 'd351f06e446ba10697bfd2977b4be52c3de148032865eaaf9efc9796aea95a0c.gz'
+        elif self.board_size == 9:
+            network = 'leelaz9x9/9x9-20-128.txt.gz'
+        else:
+            raise ValueError('No weights known for board size {}'.format(self.board_size))
         self.process = pexpect.spawn(
             '{} --gtp --lagbuffer 0 --weights {} --resignpct 0'.format(self.leelaz_binary, network),
             timeout=None)
