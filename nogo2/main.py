@@ -44,12 +44,9 @@ class NogoApp(App):
 
     def key_input(self, window, key, scancode, codepoint, modifier):
         print('Received key {}'.format(key))
-        # if key == 27:
-        # #     print('manually killed')
-        # #     self.root.ids.bc.board.lz_ponder(False)
-        # #     self.root.ids.bc.board.lz_wrapper.kill()
-        #     self.back_button_leave_app()
-        #     return True  # back button now does nothing on Android
+        if key == 27:
+            self.back_button_leave_app()
+            return True  # back button now does nothing on Android
         return False
 
     def back_button_leave_app(self):
