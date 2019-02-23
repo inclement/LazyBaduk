@@ -265,8 +265,10 @@ class LeelaZeroWrapper(object):
         print('ready to connect to LZ')
         if self.board_size == 19:
             network = 'network.gz'
-            # network = '33986b7f9456660c0877b1fc9b310fc2d4e9ba6aa9cee5e5d242bd7b2fb1b166.gz'
-            network = 'd351f06e446ba10697bfd2977b4be52c3de148032865eaaf9efc9796aea95a0c.gz'
+            network = 'd351f06e446ba10697bfd2977b4be52c3de148032865eaaf9efc9796aea95a0c.gz'  # 15x192
+            # network = '33986b7f9456660c0877b1fc9b310fc2d4e9ba6aa9cee5e5d242bd7b2fb1b166.gz'  # 20x256
+            # network = '85a936847e2759ab5ea0389bbe061245dc6025ef9d317a0d1315cc1078b0c34a.gz'  # 40x256
+            # network = 'elfv2.gz'  # 20x256?
         elif self.board_size == 9:
             network = 'leelaz9x9/9x9-20-128.txt.gz'
         else:

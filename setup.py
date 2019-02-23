@@ -23,13 +23,16 @@ options = {'apk': {#'window': None,
     }}
 setup(
     name='Lazy Baduk',
-    version='0.5',
+    version='0.6',
     description='A Leela Zero analysis tool',
     author='Alexander Taylor',
     author_email='alexander@inclem.net',
     packages=packages,
     options=options,
     package_data={'nogo2': ['*.py', '*.kv', '*.so', 'd351f06e446ba10697bfd2977b4be52c3de148032865eaaf9efc9796aea95a0c.gz'],
+    # package_data={'nogo2': ['*.py', '*.kv', '*.so', 'elfv2.gz'],
+    # package_data={'nogo2': ['*.py', '*.kv', '*.so', '33986b7f9456660c0877b1fc9b310fc2d4e9ba6aa9cee5e5d242bd7b2fb1b166.gz'],
+    # package_data={'nogo2': ['*.py', '*.kv', '*.so', '85a936847e2759ab5ea0389bbe061245dc6025ef9d317a0d1315cc1078b0c34a.gz'],
     # package_data={'nogo2': ['*.py', '*.kv', '*.so', 'network.gz'],
     # package_data={'nogo2': ['*.py', '*.kv', '*.so', 'network.gz'],
     # package_data={'nogo2': ['*.py', '*.kv', '*.so'],
@@ -44,6 +47,6 @@ setup(
                   'nogo2/assets': ['fontello.ttf'],
                   # 'nogo2/leelaz': ['*.py', 'leelaz_binary_android_9x9'],
                   'nogo2/leelaz': ['*.py', 'leelaz_binary_android'],
-                  # 'nogo2/leelaz9x9': ['*.py', '9x9-20-128.txt.gz'],
+                  'nogo2/leelaz9x9': ['*.py', '9x9-20-128.txt.gz'],
     }
 )
