@@ -12,7 +12,7 @@ few playouts, it can achieve a high dan level.
 Note that Leela Zero's analysis uses as much CPU power as it can, and
 will rapidly burn through battery power if not charging.
 
-![Lazy Baduk screenshot](screenshots/example_screenshot_small.png)
+<div style="text-align:center"><img src ="screenshots/example_screenshot_small.png" /></div>
 
 # Download
 
