@@ -12,7 +12,9 @@ few playouts, it can achieve a high dan level.
 Note that Leela Zero's analysis uses as much CPU power as it can, and
 will rapidly burn through battery power if not charging.
 
-<div style="text-align:center"><img src ="screenshots/example_screenshot_small.png" /></div>
+<p align="center">
+  <img src="screenshots/example_screenshot_small.png">
+</p>
 
 # Download
 
