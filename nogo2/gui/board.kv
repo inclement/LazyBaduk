@@ -1505,14 +1505,18 @@
             valign: 'middle'
             text: 'input\noffset'
             color: (0.85, 0.85, 0.85, 1)
+            disabled: bc.board.gridsize < 19
+            opacity: 0 if bc.board.gridsize < 19 else 1
         ButtonCheckbox:
             active: platform == 'android'
             size_hint_x: None
             width: self.height * 0.85
             draw_colour: input_offset_checkbox_label.color
             text_colour: input_offset_checkbox_label.color
-            on_active: bc.board.touchoffset = ((0, 3) if self.active else (0, 0))
-            on_parent: bc.board.touchoffset = ((0, 3) if self.active else (0, 0))
+            on_active: bc.board.touchoffset = ((0, 3) if (self.active and not self.disabled) else (0, 0))
+            on_parent: bc.board.touchoffset = ((0, 3) if (self.active and not self.disabled) else (0, 0))
+            disabled: bc.board.gridsize < 19
+            opacity: 0 if bc.board.gridsize < 19 else 1
 
 
 
