@@ -327,9 +327,12 @@ class MoveAnalysis(object):
         if word == 'lcb':
             word = words.pop(0)
             self.lcb = int(word)
+
+            word = words.pop(0)
         else:
             self.lcb = None
-            assert word == 'order'
+
+        assert word == 'order'
 
         word = words.pop(0)
         self.order = int(word)
