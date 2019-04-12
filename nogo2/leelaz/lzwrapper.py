@@ -12,7 +12,7 @@ import stat
 os.environ['LD_LIBRARY_PATH'] = path.abspath('./')
 
 MOVE_TIME_S = 5
-# MOVE_TIME_S = 10
+MOVE_TIME_S = 10
 
 
 def choose_lz_binary(board_size):
@@ -23,10 +23,12 @@ def choose_lz_binary(board_size):
     else:
         leelaz_binary = 'leelaz_binary_x86_64'
 
-    assert board_size in (9, 19)  # only sizes supported for now
+    assert board_size in (9, 13, 19)  # only sizes supported for now
 
     if board_size == 9:
         leelaz_binary += '_9x9'
+    elif board_size == 13:
+        leelaz_binary += '_13x13'
 
     leelaz_binary = path.join(cur_dir, leelaz_binary)
 
@@ -174,6 +176,7 @@ class LeelaZeroWrapper(object):
 
         # Remove passes from the move list, as they aren't handled properly by the gui yet
         self.current_analysis = [m for m in self.current_analysis if not m.is_pass]
+        self.current_analysis = sorted(self.current_analysis, key=lambda move: -move.visits)
 
         # Add relative values to the analysis
         max_visits = max([move.visits for move in self.current_analysis])
@@ -268,9 +271,13 @@ class LeelaZeroWrapper(object):
             network = 'd351f06e446ba10697bfd2977b4be52c3de148032865eaaf9efc9796aea95a0c.gz'  # 15x192
             # network = '33986b7f9456660c0877b1fc9b310fc2d4e9ba6aa9cee5e5d242bd7b2fb1b166.gz'  # 20x256
             # network = '85a936847e2759ab5ea0389bbe061245dc6025ef9d317a0d1315cc1078b0c34a.gz'  # 40x256
-            # network = 'elfv2.gz'  # 20x256?
+            network = 'elfv2.gz'  # 20x256?
+            network = '0a963117.gz'
+        elif self.board_size == 13:
+            network = '13_205.txt.gz'
         elif self.board_size == 9:
             network = 'leelaz9x9/9x9-20-128.txt.gz'
+            network = 'leelaz9x9/152s.txt.gz'
         else:
             raise ValueError('No weights known for board size {}'.format(self.board_size))
         self.process = pexpect.spawn(
@@ -315,8 +322,14 @@ class MoveAnalysis(object):
         word = words.pop(0)
         self.prior = int(word)
 
+        # lcb was introduced in the LZ release around April 2019
         word = words.pop(0)
-        assert word == 'order'
+        if word == 'lcb':
+            word = words.pop(0)
+            self.lcb = int(word)
+        else:
+            self.lcb = None
+            assert word == 'order'
 
         word = words.pop(0)
         self.order = int(word)
