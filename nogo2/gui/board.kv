@@ -1506,9 +1506,10 @@
             padding: dp(3)
             on_release: board_region_indicator.active = False
             on_release: board_region_indicator.mark_region = False
+            disabled: not board_region_indicator.mark_region
             canvas.after:
                 Color:
-                    rgba: 1, 0, 0, 0.7
+                    rgba: 1, 0, 0, 0.4 if self.disabled else 0.7
                 Line:
                     points: [self.x + dp(10), self.y + dp(10), self.right - dp(10), self.top - dp(10)]
                     width: dp(2)
