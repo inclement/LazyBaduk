@@ -5,6 +5,7 @@ import threading
 import kivy
 
 from os import path
+from itertools import product
 
 import os
 import stat
@@ -62,6 +63,10 @@ class LeelaZeroWrapper(object):
         self.lz_version = None
         self.lz_output = []  # list of output lines
         self.lz_up_to_date = True
+
+        # bounds for the rectangle we should search
+        self.bottom_left_analysis_coord = (0, 0)
+        self.top_right_analysis_coord = (18, 18)
 
         self.command_number = 1
         self.command_queue = []
@@ -175,8 +180,10 @@ class LeelaZeroWrapper(object):
         self.current_analysis = [self.parse_lz_analysis_move(m) for m in moves]
 
         # Remove passes from the move list, as they aren't handled properly by the gui yet
-        self.current_analysis = [m for m in self.current_analysis if not m.is_pass]
-        self.current_analysis = sorted(self.current_analysis, key=lambda move: -move.visits)
+        current_analysis = [m for m in self.current_analysis if not m.is_pass]
+        # Sort the moves to guarantee that they are in order of most to fewest visits
+        # This apparently wasn't necessary in older LZ versions, but seems to be now
+        self.current_analysis = sorted(current_analysis, key=lambda move: -move.visits)
 
         # Add relative values to the analysis
         max_visits = max([move.visits for move in self.current_analysis])
@@ -232,7 +239,7 @@ class LeelaZeroWrapper(object):
 
         print('!!', self.pondering, last_command)
         if self.pondering or last_command.startswith('lz-analyze'):
-            self.send_command('lz-analyze 25')
+            self.send_lz_analyse()
 
         self.current_analysis = []
 
@@ -241,9 +248,20 @@ class LeelaZeroWrapper(object):
         self.send_command('undo')
 
         if self.pondering or last_command.startswith('lz-analyze'):
-            self.send_command('lz-analyze 25')
+            self.send_lz_analyse()
 
         self.current_analysis = []
+
+    def send_lz_analyse(self):
+        bottom_left = self.bottom_left_analysis_coord
+        bl_x, bl_y = bottom_left
+        top_right = self.top_right_analysis_coord
+        tr_x, tr_y = top_right
+        allowed_region_coords = ','.join(
+            [numeric_coordinates_to_alphanumeric_coordinates(c)
+             for c in product(range(bl_x, tr_x + 1), range(bl_y, tr_y + 1))])
+        self.send_command('lz-analyze 25 allow b {} 5 allow w {} 5'.format(allowed_region_coords,
+                                                                           allowed_region_coords))
 
     def generate_move(self, colour):
         colour_string = 'black' if colour.startswith('b') else 'white'
@@ -259,7 +277,16 @@ class LeelaZeroWrapper(object):
             self.send_command('name')  # sending a command cancels the pondering
 
         elif active and not self.pondering:
-            self.send_command('lz-analyze 25')
+            self.send_lz_analyse()
+
+    def restart_ponder(self):
+        """Stop and restart pondering, to take account of any parameter changes."""
+        if not self.pondering:
+            return False
+
+        self.send_command('name')  # sending a command cancels the pondering
+        self.send_lz_analyse()
+
 
     def connect_to_leela_zero(self):
         if self.process is not None:

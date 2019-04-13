@@ -1496,6 +1496,39 @@
             #     Rectangle:
             #         pos: self.pos
             #         size: self.size
+        ColouredButton:
+            id: region_delete_button
+            text: 'm'
+            size_hint_x: None
+            width: dp(50)
+            font_name: 'assets/fontello.ttf'
+            font_size: 0.53 * self.height
+            padding: dp(3)
+            on_release: board_region_indicator.active = False
+            on_release: board_region_indicator.mark_region = False
+            canvas.after:
+                Color:
+                    rgba: 1, 0, 0, 0.7
+                Line:
+                    points: [self.x + dp(10), self.y + dp(10), self.right - dp(10), self.top - dp(10)]
+                    width: dp(2)
+                Line:
+                    points: [self.x + dp(10), self.top - dp(10), self.right - dp(10), self.y + dp(10)]
+                    width: dp(2)
+        ColouredToggleButton:
+            id: region_select_button
+            text: 'm'
+            size_hint_x: None
+            width: dp(50)
+            font_name: 'assets/fontello.ttf'
+            font_size: 0.53 * self.height
+            on_state: board_region_indicator.consume_input = (True if self.state == 'down' else False)
+            on_state: board_region_indicator.mark_region = (True if self.state == 'down' else board_region_indicator.mark_region)
+            # on_state: board_region_indicator.mark_region = (self.state == 'down')
+            padding: dp(3)
+        Widget:
+            size_hint_x: None
+            width: dp(15)
         Label:
             id: input_offset_checkbox_label
             size_hint_x: None
@@ -1524,6 +1557,14 @@
         id: bc
         size_hint_y: None if Window.height > 1.2*Window.width else 0.6
         height: Window.width
+    BoardRegionIndicator:
+        id: board_region_indicator
+        size_hint_y: None
+        height: 0
+        board: bc.board
+        # active: region_select_button.state == 'down'
+        # on_active: region_select_button.state = 'normal'
+        on_consume_input: region_select_button.state = ('normal' if not self.consume_input else region_select_button.state)
 
     DividerLine:
 
@@ -2245,3 +2286,26 @@
         Line:
             rectangle: self.center_x - 0.5*self.box_size, self.center_y - 0.5*self.box_size, self.box_size, self.box_size
             width: 1.1
+
+<BoardRegionIndicator>:
+    canvas:
+        Color:
+            rgba: 0.1, 0.1, 0.1, 0.2 if self.mark_region else 0
+        Rectangle:
+            pos: self.board_x, self.board_y
+            size: self.bottom_left_pos[0] - self.board_x, self.board_height
+        Rectangle:
+            pos: self.bottom_left_pos[0], self.board_y
+            size: self.top_right_pos[0] - self.bottom_left_pos[0], self.bottom_left_pos[1] - self.board_y
+        Rectangle:
+            pos: self.top_right_pos[0], self.board_y
+            size: self.board_x + self.board_width - self.top_right_pos[0], self.board_height
+        Rectangle:
+            pos: self.bottom_left_pos[0], self.top_right_pos[1]
+            size: self.top_right_pos[0] - self.bottom_left_pos[0], self.board_y + self.board_height - self.top_right_pos[1]
+        # Color:
+        #     rgba: 1, 0, 0, 0.6
+        # Rectangle:
+        #     pos: self.rect_pos
+        #     size: self.rect_size
+                

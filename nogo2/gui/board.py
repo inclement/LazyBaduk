@@ -599,6 +599,7 @@ class PickNewVarType(FloatLayout):
 
 class GuiBoard(Widget):
     gridsize = NumericProperty(19)  # Board size
+    # gridsize = NumericProperty(13)  # Board size
     # gridsize = NumericProperty(9)  # Board size
     navmode = StringProperty('Navigate')  # How to scale the board
     abstractboard = ObjectProperty(
@@ -689,6 +690,8 @@ class GuiBoard(Widget):
     gobanpos = ListProperty((100, 100))
 
     lz_wrapper = ObjectProperty()
+    lz_analyse_bottom_left_coord = ListProperty([0, 0])
+    lz_analyse_top_right_coord = ListProperty([0, 0])
     lz_status = StringProperty('initialising')
     lz_ready = BooleanProperty(False)
     lz_up_to_date = BooleanProperty(True)
@@ -777,6 +780,11 @@ class GuiBoard(Widget):
     def lz_ponder(self, active):
         self.lz_wrapper.toggle_ponder(active)
 
+    def lz_restart_pondering(self):
+        """If currently pondering, halt and re-send the ponder command, to
+        take account of any updates."""
+        self.lz_wrapper.restart_ponder()
+
     def lz_generate_move(self):
         colour = self.next_to_play
         self.lz_wrapper.generate_move(colour)
@@ -788,6 +796,12 @@ class GuiBoard(Widget):
         for coord in list(self.lz_pondering_markers.keys()):
             self.lz_pondering_markers[coord].pos = self.coord_to_pos(coord)
             self.lz_pondering_markers[coord].size = self.stonesize
+
+    def on_lz_analyse_bottom_left_coord(self, instance, value):
+        self.lz_wrapper.bottom_left_analysis_coord = value[::-1]  # switch x and y for lz coords
+
+    def on_lz_analyse_top_right_coord(self, instance, value):
+        self.lz_wrapper.top_right_analysis_coord = value[::-1]  # switch x and y for lz coords
 
     def on_lz_analysis(self, instance, analysis):
         """Set up pondering markers to show the current analysis state."""
@@ -2366,3 +2380,127 @@ def get_collectioninfo_from_dir(row_index, dirn):
 
 class MySpinnerOption(SpinnerOption):
     pass
+
+class BoardRegionIndicator(Widget):
+    """Class for drawing around a given region of a board."""
+    board = ObjectProperty(GuiBoard(), rebind=True)
+
+    mark_region = BooleanProperty(False)
+    consume_input = BooleanProperty(False)
+
+    current_touch = ObjectProperty(None, allownone=True)
+
+    start_coord = ListProperty([0, 0])
+    end_coord = ListProperty([0, 0])
+
+    # board coordinates bounding the box
+    bottom_left_coord = ListProperty()
+    top_right_coord = ListProperty()
+
+    # pixel coordinates bounding the marked region
+    bottom_left_pos = ListProperty([0, 0])
+    top_right_pos = ListProperty([0, 0])
+
+    board_x = NumericProperty()
+    board_y = NumericProperty()
+    board_width = NumericProperty()
+    board_height = NumericProperty()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.bind(start_coord=self.update_selection_marker,
+                  end_coord=self.update_selection_marker,
+                  size=self.update_selection_marker,
+                  pos=self.update_selection_marker)
+
+        self.reset_marker()
+
+    def on_mark_region(self, instance, mark_region):
+        if mark_region:
+            self._update_selection_marker()
+        
+        else:
+            self.board.lz_analyse_bottom_left_coord = (0, 0)
+            self.board.lz_analyse_top_right_coord = (self.board.gridsize - 1,
+                                                     self.board.gridsize - 1)
+
+        self.board.lz_restart_pondering()
+
+    def update_selection_marker(self, *args):
+        # We want to update when our size changes, but this happens
+        # before self.board changes, and it's inconvenient to rebind
+        # everything to the properties of self.board. Leaving the
+        # update until next frame is an adequate solution.
+        Clock.schedule_once(self._update_selection_marker, 0)
+
+    def _update_selection_marker(self, *args):
+        bottom_left = (max(0, min(self.start_coord[0], self.end_coord[0])),
+                       max(0, min(self.start_coord[1], self.end_coord[1])))
+        self.bottom_left_coord = bottom_left
+
+        top_right = (min(self.board.gridsize - 1, max(self.start_coord[0], self.end_coord[0])),
+                     min(self.board.gridsize - 1, max(self.start_coord[1], self.end_coord[1])))
+        self.top_right_coord = top_right
+
+        bottom_left_pos = self.board.coord_to_pos(bottom_left)
+        # for top_right, add 1 to both axes because we want the top
+        # right corner of the current coordinate, i.e. the bottom left
+        # corner of the next coordinate
+        top_right_pos = self.board.coord_to_pos([c + 1 for c in top_right])
+
+        self.bottom_left_pos = bottom_left_pos
+        self.top_right_pos = top_right_pos
+
+        self.rect_pos = self.board.coord_to_pos(bottom_left)
+        self.rect_size = (top_right_pos[0] - bottom_left_pos[0],
+                          top_right_pos[1] - bottom_left_pos[1])
+
+        self.board_x, self.board_y = self.board.pos
+        self.board_width, self.board_height = self.board.size
+
+        self.board.lz_analyse_bottom_left_coord = self.bottom_left_coord
+        self.board.lz_analyse_top_right_coord = self.top_right_coord
+
+    def reset_marker(self):
+        self.start_coord = (0, 0)
+        self.end_coord = (self.board.gridsize, self.board.gridsize) 
+
+    def on_touch_down(self, touch):
+        if not self.consume_input:
+            return False
+
+        if not self.board.collide_point(*touch.pos):
+            return False
+
+        coord = self.board.pos_to_coord(touch.pos)
+        self.start_coord = coord
+        self.end = coord
+
+        self.current_touch = touch
+
+        self.on_touch_move(touch)
+
+        return True
+
+    def on_touch_move(self, touch):
+        if touch is not self.current_touch or not self.consume_input:
+            return False
+
+        self.end_coord = self.board.pos_to_coord(touch.pos)
+
+        return True
+
+    def on_touch_up(self, touch):
+        if touch is not self.current_touch or not self.consume_input:
+            return False
+
+        self.current_touch = None
+
+        self.consume_input = False
+
+        self.board.lz_restart_pondering()
+
+        return True
+
+        
