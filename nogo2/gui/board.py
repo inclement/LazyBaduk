@@ -729,6 +729,12 @@ class GuiBoard(Widget):
         self.abstractboard = AbstractBoard(gridsize=self.gridsize)
         self.reset_abstractboard()
 
+        # Delay connecting to lz until all the state is ready,
+        # including self.gridsize being set.
+        # TODO: Would be better to reconnect to lz on gridsize change?
+        Clock.schedule_once(self.lz_init, 0)
+
+    def lz_init(self, dt):
         self.lz_wrapper = lzwrapper.LeelaZeroWrapper(self.gridsize)
         Clock.schedule_interval(self.check_lz_status, 0.3)
 
@@ -1602,7 +1608,7 @@ class GuiBoard(Widget):
                 (self.gobanpos[0] + self.boardindent[0])) / gridspacing
         rely = (pos[1] -
                 (self.gobanpos[1] + self.boardindent[1])) / gridspacing
-        if (self.navmode != 'Score') or not with_offset:
+        if with_offset:
             relx += self.touchoffset[0]
             rely += self.touchoffset[1]
         realcoord = (int(round(relx)), int(round(rely)))
@@ -2495,7 +2501,7 @@ class BoardRegionIndicator(Widget):
         if not self.board.collide_point(*touch.pos):
             return False
 
-        coord = self.board.pos_to_coord(touch.pos)
+        coord = self.board.pos_to_coord(touch.pos, with_offset=False)
         self.start_coord = coord
         self.end = coord
 
@@ -2509,7 +2515,7 @@ class BoardRegionIndicator(Widget):
         if touch is not self.current_touch or not self.consume_input:
             return False
 
-        self.end_coord = self.board.pos_to_coord(touch.pos)
+        self.end_coord = self.board.pos_to_coord(touch.pos, with_offset=False)
 
         return True
 

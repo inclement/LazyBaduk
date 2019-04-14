@@ -1,3 +1,8 @@
+# Pass empty args on to Kivy, because it annoyingly parses them on import
+import sys
+argv = sys.argv[1:]
+sys.argv = sys.argv[:1]
+
 import os
 
 from kivy.app import App
@@ -34,8 +39,13 @@ class NogoApp(App):
 
     stone_type = StringProperty('simple')
 
+    def __init__(self, board_size=19, **kwargs):
+        super().__init__(**kwargs)
+        self.board_size = board_size
+
     def build(self):
         w = board.PhoneBoardView()
+        w.ids.bc.board.gridsize = self.board_size
 
         Window.bind(on_keyboard=self.key_input)
         Window.bind(on_request_close=self.on_request_close)
@@ -76,7 +86,14 @@ class NogoApp(App):
         self.root.ids.bc.board.lz_wrapper.kill()
 
 def run(*args, **kwargs):
-    NogoApp().run()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--board-size', type=int)
+
+    args, unknown = parser.parse_known_args(argv)
+
+    NogoApp(board_size=args.board_size).run()
 
 
 if __name__ == "__main__":
