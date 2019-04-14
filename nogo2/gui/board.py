@@ -2390,6 +2390,9 @@ class BoardRegionIndicator(Widget):
 
     current_touch = ObjectProperty(None, allownone=True)
 
+    default_marker_opacity = NumericProperty(0.0)
+    animating_marker_opacity = NumericProperty(0.0)
+
     start_coord = ListProperty([0, 0])
     end_coord = ListProperty([0, 0])
 
@@ -2414,6 +2417,8 @@ class BoardRegionIndicator(Widget):
                   size=self.update_selection_marker,
                   pos=self.update_selection_marker)
 
+        self.animation = None
+
         self.reset_marker()
 
     def on_mark_region(self, instance, mark_region):
@@ -2421,11 +2426,28 @@ class BoardRegionIndicator(Widget):
             self._update_selection_marker()
         
         else:
+            self.start_coord = (0, 0)
+            self.end_coord = (self.board.gridsize - 1,
+                                    self.board.gridsize - 1)
             self.board.lz_analyse_bottom_left_coord = (0, 0)
             self.board.lz_analyse_top_right_coord = (self.board.gridsize - 1,
                                                      self.board.gridsize - 1)
 
         self.board.lz_restart_pondering()
+
+    def on_consume_input(self, instance, consume_input):
+        if consume_input:
+            self.animating_marker_opacity = 0.2
+            duration = 0.75
+            anim = (Animation(animating_marker_opacity=0.40, duration=duration, t='in_out_sine') +
+                    Animation(animating_marker_opacity=0.2, duration=duration, t='in_out_sine'))
+            anim.repeat = True
+            self.animation = anim
+            anim.start(self)
+
+        if not consume_input and self.animation is not None:
+            self.animation.cancel(self)
+            self.animation = None
 
     def update_selection_marker(self, *args):
         # We want to update when our size changes, but this happens

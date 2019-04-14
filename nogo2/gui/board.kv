@@ -2289,9 +2289,10 @@
             width: 1.1
 
 <BoardRegionIndicator>:
+    default_marker_opacity: 0.2 if self.mark_region else 0
     canvas:
         Color:
-            rgba: 0.1, 0.1, 0.1, 0.2 if self.mark_region else 0
+            rgba: 0.1, 0.1, 0.1, self.default_marker_opacity if not self.consume_input else self.animating_marker_opacity
         Rectangle:
             pos: self.board_x, self.board_y
             size: self.bottom_left_pos[0] - self.board_x, self.board_height
