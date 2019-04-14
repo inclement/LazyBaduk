@@ -177,13 +177,17 @@ class LeelaZeroWrapper(object):
         moves = line.split('info')
         moves = [m.strip() for m in moves][1:]
 
-        self.current_analysis = [self.parse_lz_analysis_move(m) for m in moves]
+        current_analysis = [self.parse_lz_analysis_move(m) for m in moves]
 
         # Remove passes from the move list, as they aren't handled properly by the gui yet
-        current_analysis = [m for m in self.current_analysis if not m.is_pass]
+        current_analysis = [m for m in current_analysis if not m.is_pass]
         # Sort the moves to guarantee that they are in order of most to fewest visits
         # This apparently wasn't necessary in older LZ versions, but seems to be now
         self.current_analysis = sorted(current_analysis, key=lambda move: -move.visits)
+
+        if not self.current_analysis:
+            # stop here if there is no analysis, e.g. if all the moves are pass
+            return
 
         # Add relative values to the analysis
         max_visits = max([move.visits for move in self.current_analysis])
@@ -260,7 +264,7 @@ class LeelaZeroWrapper(object):
         allowed_region_coords = ','.join(
             [numeric_coordinates_to_alphanumeric_coordinates(c)
              for c in product(range(bl_x, tr_x + 1), range(bl_y, tr_y + 1))])
-        self.send_command('lz-analyze 25 allow b {} 5 allow w {} 5'.format(allowed_region_coords,
+        self.send_command('lz-analyze 25 allow b {} 1 allow w {} 1'.format(allowed_region_coords,
                                                                            allowed_region_coords))
 
     def generate_move(self, colour):
@@ -371,6 +375,7 @@ class MoveAnalysis(object):
         self.move_sequence = move_sequence
         self.relative_visits = 0  # must be set elsewhere
 
+        print(self.lz_coordinates, 'move_sequence is', move_sequence)
         
     @property
     def numeric_coordinate_sequence(self):
