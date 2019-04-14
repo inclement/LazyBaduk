@@ -39,13 +39,16 @@ class NogoApp(App):
 
     stone_type = StringProperty('simple')
 
-    def __init__(self, board_size=19, **kwargs):
+    def __init__(self, board_size=19, load_sgf=None, **kwargs):
         super().__init__(**kwargs)
         self.board_size = board_size
+        self.load_sgf = load_sgf
 
     def build(self):
         w = board.PhoneBoardView()
         w.ids.bc.board.gridsize = self.board_size
+        if self.load_sgf is not None:
+            w.ids.bc.board.load_sgf_from_file('', [self.load_sgf])
 
         Window.bind(on_keyboard=self.key_input)
         Window.bind(on_request_close=self.on_request_close)
@@ -90,10 +93,12 @@ def run(*args, **kwargs):
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--board-size', type=int)
+    parser.add_argument('--sgf', default=None)
 
     args, unknown = parser.parse_known_args(argv)
 
-    NogoApp(board_size=args.board_size).run()
+    NogoApp(board_size=args.board_size,
+            load_sgf=args.sgf).run()
 
 
 if __name__ == "__main__":
