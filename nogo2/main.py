@@ -92,7 +92,7 @@ def run(*args, **kwargs):
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--board-size', type=int)
+    parser.add_argument('--board-size', type=int, default=19)
     parser.add_argument('--sgf', default=None)
 
     args, unknown = parser.parse_known_args(argv)
