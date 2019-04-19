@@ -1509,13 +1509,26 @@
             disabled: not board_region_indicator.mark_region
             canvas.after:
                 Color:
-                    rgba: 1, 0, 0, 0.4 if self.disabled else 0.7
+                    rgba: 1.0, 0.0, 0.0, 1.0 if self.disabled else 0.7
                 Line:
                     points: [self.x + dp(10), self.y + dp(10), self.right - dp(10), self.top - dp(10)]
                     width: dp(2)
                 Line:
                     points: [self.x + dp(10), self.top - dp(10), self.right - dp(10), self.y + dp(10)]
                     width: dp(2)
+                # Color:
+                #     rgba: 0, 1, 0, 1 if self.disabled else 0.5
+                # # Ellipse:
+                # #     pos: self.pos
+                # #     size: self.size
+                # Line:
+                #     points: [self.x + dp(10), self.y + dp(10), self.right - dp(10), self.top - dp(10)]
+                #     width: dp(2)
+                # Line:
+                #     points: [self.x + dp(10), self.top - dp(10), self.right - dp(10), self.y + dp(10)]
+                #     width: dp(2)
+                # Line:
+                #     points: [self.x, self.y, self.right, self.y]
         ColouredToggleButton:
             id: region_select_button
             text: 'm'
@@ -1530,28 +1543,12 @@
         Widget:
             size_hint_x: None
             width: dp(15)
-        Label:
-            id: input_offset_checkbox_label
+        BoardMenuButton:
             size_hint_x: None
-            width: dp(45)
-            text_size: self.size
-            halign: 'center'
-            valign: 'middle'
-            text: 'input\noffset'
-            color: (0.85, 0.85, 0.85, 1)
-            disabled: bc.board.gridsize < 19
-            opacity: 0 if bc.board.gridsize < 19 else 1
-        ButtonCheckbox:
-            active: platform == 'android'
-            size_hint_x: None
-            width: self.height * 0.85
-            draw_colour: input_offset_checkbox_label.color
-            text_colour: input_offset_checkbox_label.color
-            on_active: bc.board.touchoffset = ((0, 3) if (self.active and not self.disabled) else (0, 0))
-            on_parent: bc.board.touchoffset = ((0, 3) if (self.active and not self.disabled) else (0, 0))
-            disabled: bc.board.gridsize < 19
-            opacity: 0 if bc.board.gridsize < 19 else 1
-
+            width: self.texture_size[0] + dp(15)
+            text: 'menu'
+            board: bc.board
+            padding: dp(2)
 
 
     BoardContainer:
@@ -2311,3 +2308,72 @@
         #     pos: self.rect_pos
         #     size: self.rect_size
                 
+
+<BoardMenuDropDown>:
+    show_coordinates: show_coordinates_checkbox.active
+    input_offset: ((0, 3) if input_offset_checkbox.active else (0, 0))
+    DropDownButton:
+        text: 'pass'
+        size_hint_y: None
+        height: dp(40)
+        text_size: self.size
+        padding_x: dp(10)
+        valign: 'middle'
+    DropDownButtonContainer:
+        id: input_offset_container
+        size_hint_y: None
+        height: dp(40)
+        text_size: self.size
+        padding_x: dp(10)
+        valign: 'middle'
+        on_release: input_offset_checkbox.active = not input_offset_checkbox.active
+        BoxLayout:
+            size: input_offset_container.size
+            Label:
+                id: input_offset_checkbox_label
+                text_size: self.size
+                valign: 'middle'
+                text: 'input offset'
+                padding_x: dp(10)
+                color: 0.1, 0.1, 0.1, 1
+            ButtonCheckbox:
+                id: input_offset_checkbox
+                active: platform == 'android'
+                size_hint_x: None
+                width: self.height * 0.85
+                draw_colour: input_offset_checkbox_label.color
+                text_colour: input_offset_checkbox_label.color
+                handle_touch: False
+                state: input_offset_container.state
+            Widget:
+                size_hint_x: None
+                width: dp(10)
+
+    DropDownButtonContainer:
+        id: show_coordinates_container
+        size_hint_y: None
+        height: dp(40)
+        text_size: self.size
+        padding_x: dp(10)
+        valign: 'middle'
+        on_release: show_coordinates_checkbox.active = not show_coordinates_checkbox.active
+        BoxLayout:
+            size: show_coordinates_container.size
+            Label:
+                id: show_coordinates_checkbox_label
+                text_size: self.size
+                valign: 'middle'
+                text: 'coordinates'
+                padding_x: dp(10)
+                color: 0.1, 0.1, 0.1, 1
+            ButtonCheckbox:
+                id: show_coordinates_checkbox
+                size_hint_x: None
+                width: self.height * 0.85
+                draw_colour: show_coordinates_checkbox_label.color
+                text_colour: show_coordinates_checkbox_label.color
+                handle_touch: False
+                state: show_coordinates_container.state
+            Widget:
+                size_hint_x: None
+                width: dp(10)

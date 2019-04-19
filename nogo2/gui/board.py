@@ -62,25 +62,19 @@ from shutil import copyfile
 
 from gomill import sgf, boards
 
-if platform == 'android':
-    from abstract.board import *
-    # from sgfcollections import CollectionChooserButton
-    from gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
-    from gui.lzpanel import LzInfoPanel, LzPonderingMarker
-    import gui.widgets
-    from widgetcache import WidgetCache
+from abstract.board import *
+# from sgfcollections import CollectionChooserButton
+from gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
+from gui.lzpanel import LzInfoPanel, LzPonderingMarker
+import gui.widgets
+from widgetcache import WidgetCache
 
-    from leelaz import lzwrapper
+from menu import MenuDropDown, MenuButton
 
-else:
-    from nogo2.abstract.board import *
-    # from sgfcollections import CollectionChooserButton
-    from nogo2.gui.boardwidgets import Stone, TextMarker, TriangleMarker, SquareMarker, CircleMarker, CrossMarker, VarStone, WhiteStoneSimple, BlackStoneSimple
-    from nogo2.gui.lzpanel import LzInfoPanel, LzPonderingMarker
-    import nogo2.gui.widgets
-    from nogo2.widgetcache import WidgetCache
+from leelaz import lzwrapper
 
-    from nogo2.leelaz import lzwrapper
+
+Builder.load_file('menu.kv')
 
 import sys
 
@@ -668,7 +662,7 @@ class GuiBoard(Widget):
     varstones = DictProperty({})
 
     # Coordinates widget
-    coordinate_letter = 'abcdefghjklmnopqrstuv'
+    coordinate_letter = 'abcdefghjklmnopqrstuv'.upper()
     coordinate_number = [
         '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13',
         '14', '15', '16', '17', '18', '19'
@@ -2532,3 +2526,35 @@ class BoardRegionIndicator(Widget):
         return True
 
         
+class BoardMenuDropDown(MenuDropDown):
+    board = ObjectProperty()
+
+    show_coordinates = BooleanProperty(False)
+    input_offset = ListProperty([0, 0])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.bind(board=self._sync_settings,
+                  show_coordinates=self._sync_settings,
+                  input_offset=self._sync_settings)
+
+    def _sync_settings(self, *args):
+        if self.board is None:
+            return
+        
+        self.board.touchoffset = self.input_offset
+        self.board.coordinates = self.show_coordinates
+    
+
+class BoardMenuButton(MenuButton):
+    dropdown_cls = ObjectProperty(BoardMenuDropDown)
+
+    board = ObjectProperty()
+
+    def on_dropdown(self, instance, dropdown):
+        if dropdown is not None:
+            dropdown.board = self.board
+
+    def on_board(self, instance, board):
+        if self.dropdown is not None:
+            self.dropdown.board = board

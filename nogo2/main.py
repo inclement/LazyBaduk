@@ -1,4 +1,4 @@
-# Pass empty args on to Kivy, because it annoyingly parses them on import
+#i Pass empty args on to Kivy, because it annoyingly parses them on import
 import sys
 argv = sys.argv[1:]
 sys.argv = sys.argv[:1]
@@ -26,6 +26,7 @@ sys.path.append(join(nogo_path, 'ext'))
 
 from gui import board, misc
 from widgetcache import WidgetCache
+import menu
 
 print('cb', misc.ColouredButton)
 
@@ -93,12 +94,12 @@ def run(*args, **kwargs):
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--board-size', type=int, default=19)
-    parser.add_argument('--sgf', default=None)
+    parser.add_argument('--load-sgf', default=None)
 
     args, unknown = parser.parse_known_args(argv)
 
     NogoApp(board_size=args.board_size,
-            load_sgf=args.sgf).run()
+            load_sgf=args.load_sgf).run()
 
 
 if __name__ == "__main__":
