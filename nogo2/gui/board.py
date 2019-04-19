@@ -1235,6 +1235,9 @@ class GuiBoard(Widget):
             self.abstractboard.add_marker_at(mtype, coords)
             self.add_marker(coords, mtype)
 
+    def add_pass(self):
+        self.add_new_stone(None)
+
     def add_new_stone(self, coords, newtype='newvar'):
         #print 'Called add_new_stone', coords, newtype
         colour = self.next_to_play
@@ -1774,8 +1777,8 @@ class GuiBoard(Widget):
             if 'add' in instructions:
                 App.get_running_app().play_stone_sound()
 
-            for coords, colour in instructions['add']:
-                self.lz_add_stone(coords, colour)
+                for coords, colour in instructions['add']:
+                    self.lz_add_stone(coords, colour)
 
         else:
             self.stop_autoplay()

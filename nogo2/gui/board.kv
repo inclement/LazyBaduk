@@ -1503,7 +1503,7 @@
             width: dp(50)
             font_name: 'assets/fontello.ttf'
             font_size: 0.53 * self.height
-            padding: dp(3)
+            padding: dp(2)
             on_release: board_region_indicator.active = False
             on_release: board_region_indicator.mark_region = False
             disabled: not board_region_indicator.mark_region
@@ -1539,10 +1539,10 @@
             on_state: board_region_indicator.consume_input = (True if self.state == 'down' else False)
             on_state: board_region_indicator.mark_region = (True if self.state == 'down' else board_region_indicator.mark_region)
             # on_state: board_region_indicator.mark_region = (self.state == 'down')
-            padding: dp(3)
+            padding: dp(2)
         Widget:
             size_hint_x: None
-            width: dp(15)
+            width: dp(10)
         BoardMenuButton:
             size_hint_x: None
             width: self.texture_size[0] + dp(15)
@@ -2319,6 +2319,7 @@
         text_size: self.size
         padding_x: dp(10)
         valign: 'middle'
+        on_release: root.board.add_pass()
     DropDownButtonContainer:
         id: input_offset_container
         size_hint_y: None
@@ -2368,6 +2369,7 @@
                 color: 0.1, 0.1, 0.1, 1
             ButtonCheckbox:
                 id: show_coordinates_checkbox
+                active: False
                 size_hint_x: None
                 width: self.height * 0.85
                 draw_colour: show_coordinates_checkbox_label.color
