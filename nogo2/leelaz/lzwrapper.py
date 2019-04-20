@@ -58,6 +58,8 @@ class LeelaZeroWrapper(object):
 
         self.current_analysis = []
 
+        self.next_to_play = 'b'
+
         # LZ data to be read from the process
         self.lz_name = None
         self.lz_version = None
@@ -264,8 +266,10 @@ class LeelaZeroWrapper(object):
         allowed_region_coords = ','.join(
             [numeric_coordinates_to_alphanumeric_coordinates(c)
              for c in product(range(bl_x, tr_x + 1), range(bl_y, tr_y + 1))])
-        self.send_command('lz-analyze 25 allow b {} 1 allow w {} 1'.format(allowed_region_coords,
-                                                                           allowed_region_coords))
+        self.send_command('lz-analyze {} 25 allow b {} 1 allow w {} 1'.format(
+            self.next_to_play,
+            allowed_region_coords,
+            allowed_region_coords))
 
     def generate_move(self, colour):
         colour_string = 'black' if colour.startswith('b') else 'white'
@@ -275,6 +279,9 @@ class LeelaZeroWrapper(object):
         self.send_command('time_settings 0 {} 1'.format(MOVE_TIME_S))
         self.send_command('genmove {}'.format(colour_string))
         self.send_command('name')
+
+    def set_next_colour_to_play(self, colour):
+        self.next_to_play = colour
 
     def toggle_ponder(self, active):
         if not active and self.pondering:

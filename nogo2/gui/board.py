@@ -740,6 +740,10 @@ class GuiBoard(Widget):
 
     def on_next_to_play(self, instance, colour):
         print('next to play', colour)
+        if self.lz_wrapper is not None:
+            self.lz_wrapper.set_next_colour_to_play(colour[0])
+            self.lz_restart_pondering()
+
         if colour.startswith('b') and self.lz_autoplay_black and not self.lz_generating_move:
             self.lz_generate_move()
         elif colour.startswith('w') and self.lz_autoplay_white and not self.lz_generating_move:
@@ -1651,7 +1655,7 @@ class GuiBoard(Widget):
 
     # Stone methods
     def follow_instructions(self, instructions, *args, **kwargs):
-        # print(('### instructions are', instructions))
+        print(('### instructions are', instructions))
         if instructions is None:
             print('No instructions.')
             return
@@ -1815,7 +1819,9 @@ class GuiBoard(Widget):
         if instructions is not None:
             self.follow_instructions(instructions)
 
-            self.lz_wrapper.undo_move()
+            if 'remove' in instructions:
+                assert len(instructions['remove'])
+                self.lz_wrapper.undo_move()
 
     def jump_to_start(self, *args, **kwargs):
         instructions = self.abstractboard.jump_to_node(

@@ -1545,9 +1545,11 @@
             width: dp(10)
         BoardMenuButton:
             size_hint_x: None
-            width: self.texture_size[0] + dp(15)
-            text: 'menu'
+            width: 1.1 * self.height
+            text: 's'
+            font_name: 'assets/fontello.ttf'
             board: bc.board
+            font_size: 0.55 * self.height
             padding: dp(2)
 
 
