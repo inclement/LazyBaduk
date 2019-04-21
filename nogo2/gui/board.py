@@ -728,6 +728,18 @@ class GuiBoard(Widget):
         # TODO: Would be better to reconnect to lz on gridsize change?
         Clock.schedule_once(self.lz_init, 0)
 
+        Window.bind(on_keyboard=self._on_keyboard)
+
+    def _on_keyboard(self, window, key, scancode, codepoint, modifier):
+        import time
+        print(key, scancode, codepoint, modifier, time.time())
+        if key == 275:
+            self.advance_one_move()
+        elif key == 276:
+            self.retreat_one_move()
+        elif key == 32:
+            self.lz_ponder(not self.lz_status == 'pondering')
+
     def lz_init(self, dt):
         self.lz_wrapper = lzwrapper.LeelaZeroWrapper(self.gridsize)
         Clock.schedule_interval(self.check_lz_status, 0.3)
@@ -2257,7 +2269,7 @@ class BoardContainer(StencilView):
 
     def _keyboard_closed(self):
         print('My keyboard has been closed!')
-        # self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
         # self._keyboard = None
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
@@ -2267,6 +2279,7 @@ class BoardContainer(StencilView):
 
         # Keycode is composed of an integer + a string
         # If we hit escape, release the keyboard
+        print(keyboard, keycode, text, modifiers)
         if keycode[1] == 'escape':
             keyboard.release()
         elif keycode[1] in advancekeys:

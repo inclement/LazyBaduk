@@ -1644,6 +1644,7 @@
                 text: 'ponder'
                 disabled: (not root.board.lz_ready) or root.board.lz_generating_move
                 on_state: root.board.lz_ponder(self.state == 'down')
+                state: 'down' if bc.board.lz_status == 'pondering' else 'normal'
                 on_disabled: self.state = 'normal' if root.board.lz_generating_move else self.state
                 padding: dp(2)
 
