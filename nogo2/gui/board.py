@@ -739,6 +739,8 @@ class GuiBoard(Widget):
             self.retreat_one_move()
         elif key == 32:
             self.lz_ponder(not self.lz_status == 'pondering')
+        elif codepoint == 'p':
+            self.add_pass()
 
     def lz_init(self, dt):
         self.lz_wrapper = lzwrapper.LeelaZeroWrapper(self.gridsize)
